@@ -47,7 +47,7 @@ public class TestDBpedia {
         }
 
         PredicateQueryProcessor processor = new PredicateQueryProcessor("luceneIndex");
-        List<Instance> top = processor.getTopMatches("producer", 1);
+        List<Instance> top = processor.getTopMatches("developer", 1);
         for(Instance t : top){
             System.out.println(t);
         }

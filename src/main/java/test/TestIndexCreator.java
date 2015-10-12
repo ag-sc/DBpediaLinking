@@ -5,6 +5,8 @@
  */
 package test;
 
+import de.citec.sc.loader.AnchorTextLoader;
+import de.citec.sc.loader.DBpediaLoader;
 import de.citec.sc.loader.MATOLLLoader;
 
 
@@ -16,15 +18,15 @@ import de.citec.sc.loader.MATOLLLoader;
 public class TestIndexCreator {
 
     public static void main(String[] args) {
-        //DBpediaLoader loader = new DBpediaLoader();
-        //loader.loadDBpedia(true, "luceneIndex", "dbpediaFiles/");
-        
-        MATOLLLoader loader= new MATOLLLoader();
-        loader.load(true, "matollIndex", "matollFiles/");
-
-
-        //AnchorTextLoader loadAnchors = new AnchorTextLoader();
-        //loadAnchors.load(true, "anchorIndex", "anchorFiles/");
+        DBpediaLoader dbpediaLoader = new DBpediaLoader();
+        dbpediaLoader.load(true, "luceneIndex", "dbpediaFiles/");
+//        
+        MATOLLLoader matollLoader= new MATOLLLoader();
+        matollLoader.load(true, "matollIndex", "matollFiles/");
+//
+//
+        AnchorTextLoader loadAnchors = new AnchorTextLoader();
+        loadAnchors.load(true, "anchorIndex", "anchorFiles/");
         
     }
 }

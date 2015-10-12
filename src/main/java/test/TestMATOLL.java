@@ -45,7 +45,7 @@ public class TestMATOLL {
 //        }
 
         MATOLLQueryProcessor processor = new MATOLLQueryProcessor("matollIndex");
-        List<Instance> top = processor.getTopMatches("established", 10);
+        List<Instance> top = processor.getTopMatches("catholic", 10);
         for(Instance t : top){
             System.out.println(t);
         }

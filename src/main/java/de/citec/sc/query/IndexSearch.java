@@ -117,38 +117,6 @@ public class IndexSearch {
         return result;
     }
 
-    /**
-     * <p>
-     * get list of DBpedia predicates for given label and POS tag </p>
-     *
-     * @return List of 10 DBpedia predicates from MATOLL (nouns and adjectives)
-     * @param label to search the index
-     * @param POS tags (adjective, commonNoun, verb)
-     */
-    public List<String> getPredicatesFromMATOLL(String label, String POS) {
-
-        QueryProcessor queryProcessor = new MATOLLQueryProcessor();
-
-        List<Instance> instances = queryProcessor.getTopMatches(label, 10);
-
-        List<String> result = new ArrayList<String>();
-        for (Instance c : instances) {
-            // check if the first letter start with Lowercase character
-            //POS => http://www.lexinfo.net/ontology/2.0/lexinfo#Adjective
-            if (POS.equals("all")) {
-                if (!c.getPos().equals("restrictionClass")) {
-                    result.add(c.getUri());
-                }
-            } else {
-                if (c.getPos().equals("http://www.lexinfo.net/ontology/2.0/lexinfo#" + POS)) {
-                    result.add(c.getUri());
-                }
-            }
-
-        }
-
-        return result;
-    }
 
     /**
      * <p>
@@ -167,7 +135,15 @@ public class IndexSearch {
         List<String> result = new ArrayList<String>();
         for (Instance c : instances) {
 
-            result.add(c.getUri());
+            if(c.getPos().equals("http://www.lexinfo.net/ontology/2.0/lexinfo#adjective")){
+                if(c.getOnProperty().equals("")){
+                    result.add(c.getUri());
+                }
+            }
+            else{
+                result.add(c.getUri());
+            }
+            
 
         }
 
@@ -193,7 +169,11 @@ public class IndexSearch {
 
         List<String> result = new ArrayList<String>();
         for (Instance c : instances) {
-            result.add(c.getOnProperty() + "###" + c.getUri());
+            if(c.getPos().equals("http://www.lexinfo.net/ontology/2.0/lexinfo#adjective")){
+                if(!c.getOnProperty().equals("")){
+                    result.add(c.getOnProperty() + "###" + c.getUri());
+                }
+            }
         }
 
         return result;
