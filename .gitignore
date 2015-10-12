@@ -7,3 +7,10 @@
 .DS_Store
 
 /target
+/README.md~
+/anchorFiles
+/anchorIndex
+/dbpediaFiles
+/luceneIndex
+/matollFiles
+/matollIndex
