@@ -11,4 +11,4 @@ Creates DBpedia Linking  on Lucene Index.
 
 4) Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestIndexCreator.java">TestIndexCreator</a> for creating indexes
 
-4) Check  <a href="https://github.com/ag-sc/DBpediaLinking/tree/master/src/main/java/test/TestIndexSearch">TestIndexSearch</a> for searching over created indexes
+4) Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestIndexSearch.java">TestIndexSearch</a> for searching over created indexes
