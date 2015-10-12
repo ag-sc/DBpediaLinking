@@ -9,4 +9,4 @@ Creates DBpedia Linking  on Lucene Index.
 		Ethiopia	http://dbpedia.org/resource/Ethiopia	200
 3) Put MATOLL lexicon file in Turtle (*.ttl) format under "matollFiles"
 
-4) Check  <a href="https://github.com/ag-sc/DBpediaLinking/tree/master/src/main/test">test files</a> for creating indexes
+4) Check  <a href="https://github.com/ag-sc/DBpediaLinking/tree/master/src/main/java/test">test files</a> for creating indexes
