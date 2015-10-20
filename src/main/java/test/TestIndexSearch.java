@@ -10,6 +10,7 @@ import de.citec.sc.lemmatizer.Lemmatizer;
 import de.citec.sc.lemmatizer.StanfordLemmatizer;
 import de.citec.sc.query.IndexSearch;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -21,7 +22,7 @@ public class TestIndexSearch {
         Lemmatizer lemmatizer = new StanfordLemmatizer();
         
         
-        List<String> result = indexSearch.getPredicates("producer");
+        Set<String> result = indexSearch.getPredicates("producer");
         System.out.println("Predicates"+result);
         
         result = indexSearch.getClasses("actor");
@@ -32,14 +33,16 @@ public class TestIndexSearch {
         word = lemmatizer.lemmatize(word);
         
         result = indexSearch.getPredicatesCombinedWithWordnet(word);
-        System.out.println("Predicates + Wordnet"+result);
+        System.out.println("DBpedia Ontology + Wordnet"+result);
         
-        result = indexSearch.getEntitiesFromAnchorText("Obama");
+        result = indexSearch.getEntitiesFromAnchorText("ESA");
         System.out.println("Entities"+result);
         
-        result = indexSearch.getPredicatesFromMATOLL("daughter");
-        System.out.println("MATOLL Predicates:"+result);
+        result = indexSearch.getPredicatesFromMATOLL(word);
+        System.out.println("MATOLL Predicates:"+result + " "+result.size());
         
+        result = indexSearch.getAllPredicates(word);
+        System.out.println("DBpedia Ontology + MATOLL + Wordnet Predicates:"+result+" "+result.size());
         
         result = indexSearch.getRestrictionClassesFromMATOLL("catholic");
         System.out.println("MATOLL Restriction classes:"+result);

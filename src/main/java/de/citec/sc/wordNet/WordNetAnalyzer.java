@@ -5,6 +5,7 @@ import edu.smu.tspell.wordnet.Synset;
 import edu.smu.tspell.wordnet.SynsetType;
 import edu.smu.tspell.wordnet.WordNetDatabase;
 import edu.smu.tspell.wordnet.WordSense;
+import edu.stanford.nlp.util.ArraySet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -74,8 +75,8 @@ public class WordNetAnalyzer {
      * @return list containing synonyms and derivational words, separated by
      * delimiter
      */
-    public List<String> getDerivationalWords(String word, String delimiter) {
-        List<String> derivStringSet = new ArrayList<String>();
+    public Set<String> getDerivationalWords(String word, String delimiter) {
+        Set<String> derivStringSet = new ArraySet<>();
         derivStringSet.add(word);
         
         
