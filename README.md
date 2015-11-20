@@ -5,7 +5,11 @@
 
 <b>INSTALL Maven Dependencies </b>
 	
-Checkout the project and locate the "libs" directory , run the following codes inside "libs" directory
+1) Checkout the project and locate the "libs" directory 
+
+2) Download the file <a href="http://bit.ly/1O7BozJ">matoll-0.0.1.jar</a> and put under "libs" in the project folder
+
+3) run the following codes inside "libs" directory (installs maven dependencies)
 
 <code>  mvn install:install-file -DgroupId=de.citec.sc -DartifactId=matoll -Dversion=1.0 -Dpackaging=jar -Dfile=matoll-0.0.1.jar </code>
 
