@@ -14,7 +14,8 @@ INSTALL MAVEN LIBRARIES :
 DOWNLOAD PROJECT FILES
 
 1) Download the file from <a href="http://bit.ly/1OV4m76">wikipedia_anchors.ttl</a> and put under "anchorFiles" in the project folder
-1) Download the file from <a href="http://bit.ly/1I3tGjs">lexicon.ttl</a> and put under "matollFiles" in the project folder
+
+2) Download the file from <a href="http://bit.ly/1I3tGjs">lexicon.ttl</a> and put under "matollFiles" in the project folder
 
 
 CREATE INDEX FILES:
