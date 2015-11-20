@@ -6,7 +6,7 @@ Checkout the project and locate the "libs" , run the following codes inside "lib
 
 <code>  mvn install:install-file -DgroupId=de.citec.sc -DartifactId=matoll -Dversion=1.0 -Dpackaging=jar -Dfile=matoll-0.0.1.jar </code>
 
-  mvn install:install-file -DgroupId=edu.smu.tspell -DartifactId=wordNet -Dversion=1.0 -Dpackaging=jar -Dfile=jaws-bin.jar 
+<code>    mvn install:install-file -DgroupId=edu.smu.tspell -DartifactId=wordNet -Dversion=1.0 -Dpackaging=jar -Dfile=jaws-bin.jar  </code>
 
 
 DOWNLOAD PROJECT FILES
