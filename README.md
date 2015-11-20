@@ -1,6 +1,9 @@
 
 
-INSTALL Maven Dependencies
+
+
+
+<b>INSTALL Maven Dependencies </b>
 	
 Checkout the project and locate the "libs" directory , run the following codes inside "libs" directory
 
@@ -10,7 +13,7 @@ Checkout the project and locate the "libs" directory , run the following codes i
 
 
 
-DOWNLOAD Project Files
+<b>DOWNLOAD Project Files </b>
 
 1) Download the file <a href="http://bit.ly/1OV4m76">wikipedia_anchors.ttl</a> and put under "anchorFiles" in the project folder
 
@@ -19,16 +22,16 @@ DOWNLOAD Project Files
 
 
 
-
-CREATE Index Files
+<b>
+CREATE Index Files </b>
 
 Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/CreateIndexes.java">CreateIndexes</a> for creating indexes
 
 
 
 
-
-RETRIEVAL of Data from Indexes
+<b>
+RETRIEVAL of Data from Indexes </b>
 
 Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestIndexSearch.java">TestIndexSearch</a> for searching over created indexes
 
