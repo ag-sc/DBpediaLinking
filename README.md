@@ -11,6 +11,12 @@ INSTALL MAVEN LIBRARIES :
   mvn install:install-file -DgroupId=edu.smu.tspell -DartifactId=wordNet -Dversion=1.0 -Dpackaging=jar -Dfile=jaws-bin.jar 
 
 
+DOWNLOAD PROJECT FILES
+
+1) Download the file from <a href="http://bit.ly/1OV4m76">wikipedia_anchors.ttl</a> and put under "anchorFiles" in the project folder
+1) Download the file from <a href="http://bit.ly/1I3tGjs">lexicon.ttl</a> and put under "matollFiles" in the project folder
+
+
 CREATE INDEX FILES:
 
 Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/CreateIndexes.java">CreateIndexes</a> for creating indexes

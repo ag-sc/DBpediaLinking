@@ -44,7 +44,7 @@ public class AnchorTextLoader implements Loader{
             for (int i = 0; i < listOfFiles.length; i++) {
                 if (listOfFiles[i].isFile() && !listOfFiles[i].isHidden()) {
                     String fileExtension = listOfFiles[i].getName().substring(listOfFiles[i].getName().lastIndexOf(".") + 1);
-                    if (fileExtension.equals("txt")) {
+                    if (fileExtension.equals("ttl")) {
 
                         try {
                             AnchorTextIndexer indexer = new AnchorTextIndexer(indexDirectory);
