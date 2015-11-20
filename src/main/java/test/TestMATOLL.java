@@ -33,10 +33,8 @@ public class TestMATOLL {
         
 //        try {
 //            MATOLLIndexer indexer = new MATOLLIndexer("matollIndex");
-//            indexer.addEntry("URI1", "husband", 10, "noun", "");
-//            indexer.addEntry("URI2", "husband", 3, "noun", "");
-//            indexer.addEntry("URI3", "husband", 1, "adj", "marriage");
-//            indexer.addEntry("URI4", "wife", 1, "adj", "marriage");
+//            indexer.addEntry("http://dbpedia.org/property/timezone", "time zone", 10, "noun", "");
+//            
 //            
 //            indexer.finilize();
 //            
@@ -45,7 +43,7 @@ public class TestMATOLL {
 //        }
 
         MATOLLQueryProcessor processor = new MATOLLQueryProcessor("matollIndex");
-        List<Instance> top = processor.getTopMatches("catholic", 10);
+        List<Instance> top = processor.getTopMatches("time zone", 100000);
         for(Instance t : top){
             System.out.println(t);
         }

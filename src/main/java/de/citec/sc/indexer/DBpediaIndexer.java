@@ -52,7 +52,7 @@ public class DBpediaIndexer implements Indexer {
     public void addPredicate(String label, String uri, String synonyms, String hypernyms) throws IOException {
         predicatesDoc = new Document();
 
-        Field labelField = new StringField("label", label, Field.Store.YES);
+        Field labelField = new TextField("label", label, Field.Store.YES);
         predicatesDoc.add(labelField);
 
         Field uriField = new StringField("URI", uri, Field.Store.YES);

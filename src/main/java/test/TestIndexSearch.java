@@ -22,29 +22,29 @@ public class TestIndexSearch {
         Lemmatizer lemmatizer = new StanfordLemmatizer();
         
         
-        Set<String> result = indexSearch.getPredicates("producer");
+        Set<String> result = indexSearch.getPredicates("time zone", false);
         System.out.println("Predicates"+result);
         
-        result = indexSearch.getClasses("actor");
+        result = indexSearch.getClasses("SoCCER PLaYER", false);
         System.out.println("Classes"+result);
         
         
-        String word = "produced";
+        String word = "time zone";
         word = lemmatizer.lemmatize(word);
         
-        result = indexSearch.getPredicatesCombinedWithWordnet(word);
+        result = indexSearch.getPredicates(word, true);
         System.out.println("DBpedia Ontology + Wordnet"+result);
         
-        result = indexSearch.getEntitiesFromAnchorText("ESA");
+        result = indexSearch.getEntitiesFromAnchorText("new yOrk");
         System.out.println("Entities"+result);
         
-        result = indexSearch.getPredicatesFromMATOLL(word);
+        result = indexSearch.getPredicatesFromMATOLL(word, true);
         System.out.println("MATOLL Predicates:"+result + " "+result.size());
         
         result = indexSearch.getAllPredicates(word);
         System.out.println("DBpedia Ontology + MATOLL + Wordnet Predicates:"+result+" "+result.size());
         
-        result = indexSearch.getRestrictionClassesFromMATOLL("catholic");
+        result = indexSearch.getRestrictionClassesFromMATOLL("catholic", true);
         System.out.println("MATOLL Restriction classes:"+result);
     }
 }

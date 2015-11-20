@@ -132,18 +132,20 @@ public class DBpediaLoader implements Loader {
                                     if (o.contains("\"@en")) {
                                         //remove " and "@en from string
                                         o = o.substring(1, o.length() - 4);
+                                        o = o.toLowerCase();
                                         dbpediaIndexer.addInstance(o, s);
                                     }
                                 } else if (s.startsWith("http://dbpedia.org/ontology/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
 
                                     if (o.contains("\"@en")) {
                                         o = o.substring(1, o.length() - 4);
+                                        o = o.toLowerCase();
                                         dbpediaIndexer.addPredicate(o, s, "", "");
                                     }
 
                                 } else if (s.startsWith("http") && p.startsWith("http") && o.contains("http")) {
                                     // create triple index
-                                    dbpediaIndexer.addTriple(s, p, o);
+                                    //dbpediaIndexer.addTriple(s, p, o);
                                 }
                             }
 

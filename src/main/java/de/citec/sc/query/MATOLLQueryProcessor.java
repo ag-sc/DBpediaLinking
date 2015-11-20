@@ -60,7 +60,7 @@ public class MATOLLQueryProcessor implements QueryProcessor {
             Query q = new TermQuery(new Term("label", label));
 
             // 3. search
-            int hitsPerPage = 1000;
+            int hitsPerPage = 10000;
             IndexReader reader = DirectoryReader.open(entityIndex);
             IndexSearcher searcher = new IndexSearcher(reader);
             TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);

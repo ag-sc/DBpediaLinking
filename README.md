@@ -1,14 +1,25 @@
-Creates DBpedia Linking  on Lucene Index.
 
-1) Download DBpedia files  in NTriple format (e.g.dbpedia_ontology.nt) and put them under directory "dbpediaFiles"
 
-2) Put wikipedia anchor file under "anchorFiles"
+INSTALL MAVEN LIBRARIES :
 
-	Wikipedia anchor file is formatted e.g. tab seperated line (Label, URI, frequency)
+	<p>
+	1) Checkout the project and locate the "libs" folder under the Project, change into that directory with jar files (matoll-0.0.1.jar, jaws-bin.jar)
+	</p>
+	<p>
+	2) run the following codes to install jar into local machine:
+	<p>	mvn install:install-file -DgroupId=de.citec.sc -DartifactId=matoll -Dversion=1.0 -Dpackaging=jar -Dfile=matoll-0.0.1.jar	</p>
+	<p>	mvn install:install-file -DgroupId=edu.smu.tspell -DartifactId=wordNet -Dversion=1.0 -Dpackaging=jar -Dfile=jaws-bin.jar </p>
 
-		Ethiopia	http://dbpedia.org/resource/Ethiopia	200
-3) Put MATOLL lexicon file in Turtle (*.ttl) format under "matollFiles"
 
-4) Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestIndexCreator.java">TestIndexCreator</a> for creating indexes
+CREATE INDEX FILES:
+<p>
+Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/CreateIndexes.java">CreateIndexes</a> for creating indexes
+</p>
 
-4) Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestIndexSearch.java">TestIndexSearch</a> for searching over created indexes
+RETRIEVAL OF DATA FROM INDEXES
+<p>
+Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestIndexSearch.java">TestIndexSearch</a> for searching over created indexes
+</p>
+
+
+

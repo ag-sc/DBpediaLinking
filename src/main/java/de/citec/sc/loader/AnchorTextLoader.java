@@ -109,7 +109,10 @@ public class AnchorTextLoader implements Loader{
                             String uri = all[1];
                             int freq = Integer.parseInt(all[2]);
 
+                            label  = label.toLowerCase();
+                            
                             anchorIndexer.addEntity(label, uri, freq);
+                            
                         } catch (Exception ex) {
                             System.err.println(line);
                         }
