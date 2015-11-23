@@ -44,7 +44,7 @@ public class TestIndexSearch {
         result = indexSearch.getAllPredicates(word);
         System.out.println("DBpedia Ontology + MATOLL + Wordnet Predicates:"+result+" "+result.size());
         
-        result = indexSearch.getRestrictionClassesFromMATOLL("catholic", true);
+        result = indexSearch.getRestrictionClassesFromMATOLL("cosmonaut", true);
         System.out.println("MATOLL Restriction classes:"+result);
     }
 }

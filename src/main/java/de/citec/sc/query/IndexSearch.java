@@ -8,11 +8,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -131,10 +134,22 @@ public class IndexSearch {
         Set<String> result = new ArraySet<>();
         for (Instance c : instances) {
             // check if the first letter start with Lowercase character
+            
             result.add(c.getUri());
         }
 
         return result;
+    }
+
+    public Set<String> getEntitiesFromDBpediaOntology(String label) {
+        
+        label = label.toLowerCase();
+        
+        PredicateQueryProcessor queryProcessor = new PredicateQueryProcessor();
+        label =  label.toLowerCase();
+        Set<String> list = queryProcessor.getDBpediaResources(label, 1000);
+        
+        return list;
     }
 
     /**
@@ -215,9 +230,9 @@ public class IndexSearch {
         for (Instance i : instances) {
             // check if the first letter start with Lowercase character
             if (i.getOnProperty().equals("")) {
-                
+
                 if (i.getUri().contains("http://dbpedia.org/ontology/")) {
-                    
+
                     String c = i.getUri();
                     String firstLetter = c.replace("http://dbpedia.org/ontology/", "").substring(0, 1);
                     if (firstLetter.equals(firstLetter.toLowerCase())) {
@@ -227,7 +242,7 @@ public class IndexSearch {
                     }
                 }
                 if (i.getUri().contains("http://dbpedia.org/property/")) {
-                    
+
                     String c = i.getUri();
                     predicates.add(c);
                 }
@@ -252,5 +267,27 @@ public class IndexSearch {
         uris.addAll(getPredicatesFromMATOLL(label, true));
 
         return uris;
+    }
+    
+    
+    public Set<String> getAllEntities(String label) {
+        Set<String> uris = getEntitiesFromAnchorText(label);
+        
+        uris.addAll(getEntitiesFromDBpediaOntology(label));
+        
+        Set<String> decoded = new LinkedHashSet<>();
+        
+        //decode ASCII characters like  %2C => ,
+        for(String s : uris){
+            try {
+                s = URLDecoder.decode(s, "UTF-8");
+                decoded.add(s);
+            } catch (UnsupportedEncodingException ex) {
+                //Logger.getLogger(TestRetrieval.class.getName()).log(Level.SEVERE, null, ex);
+                decoded.add(s);
+            }
+        }
+
+        return decoded;
     }
 }

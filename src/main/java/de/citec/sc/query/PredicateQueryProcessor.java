@@ -3,8 +3,9 @@ package de.citec.sc.query;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
-
+import java.util.Set;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -23,9 +24,11 @@ import org.apache.lucene.store.FSDirectory;
 
 public class PredicateQueryProcessor implements QueryProcessor {
 
-    private String entityIndexDirectory = "/predicatesindex/";
+    private String predicateIndexDirectory = "/predicatesindex/";
+    private String instanceIndexDirectory = "/instancesindex/";
     private StandardAnalyzer analyzer;
-    private Directory entityIndex;
+    private Directory predicateIndex;
+    private Directory instanceIndex;
 
     public PredicateQueryProcessor(String indexDirectory) {
         initIndexDirectory(indexDirectory);
@@ -65,7 +68,7 @@ public class PredicateQueryProcessor implements QueryProcessor {
 
             // 3. search
             int hitsPerPage = 1000;
-            IndexReader reader = DirectoryReader.open(entityIndex);
+            IndexReader reader = DirectoryReader.open(predicateIndex);
             IndexSearcher searcher = new IndexSearcher(reader);
             TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
             searcher.search(q, collector);
@@ -107,7 +110,7 @@ public class PredicateQueryProcessor implements QueryProcessor {
 
             // 3. search
             int hitsPerPage = 1000;
-            IndexReader reader = DirectoryReader.open(entityIndex);
+            IndexReader reader = DirectoryReader.open(predicateIndex);
             IndexSearcher searcher = new IndexSearcher(reader);
             TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
             searcher.search(q, collector);
@@ -139,14 +142,65 @@ public class PredicateQueryProcessor implements QueryProcessor {
         }
         return result;
     }
+    
+    
+    public Set<String> getDBpediaResources(String label, int k) {
+        List<Instance> result = new ArrayList<>();
+        
+        try {
+
+            //Query q = new QueryParser("label", analyzer).parse(label);
+            Query q = new TermQuery(new Term("label", label));
+
+            // 3. search
+            int hitsPerPage = 1000;
+            IndexReader reader = DirectoryReader.open(instanceIndex);
+            IndexSearcher searcher = new IndexSearcher(reader);
+            TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
+            searcher.search(q, collector);
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+
+			// 4. display results
+            //System.out.println("Found " + hits.length + " hits.");
+            for (int i = 0; i < hits.length; ++i) {
+                int docId = hits[i].doc;
+                Document d = searcher.doc(docId);
+                
+                Instance i1 = new Instance(d.get("URI"), 0);
+                
+                if (!result.contains(i1)) {
+                    result.add(i1);
+                }
+            }
+
+            reader.close();
+
+        } catch (Exception e) {
+
+        }
+        
+        Collections.sort(result);
+        
+        if(result.size()>k){
+            result = result.subList(0, k);
+        }
+        
+        Set<String> resources = new LinkedHashSet<>();
+        result.forEach(i1 -> resources.add(i1.getUri()));
+        
+        return resources;
+    }
 
     @Override
     public void initIndexDirectory(String indexDirectory) {
         try {
-            entityIndexDirectory = indexDirectory + "/predicatesindex/";
+            predicateIndexDirectory = indexDirectory + "/predicatesindex/";
+            instanceIndexDirectory = indexDirectory + "/instancesindex/";
 
             analyzer = new StandardAnalyzer();
-            entityIndex = FSDirectory.open(Paths.get(entityIndexDirectory));
+            predicateIndex = FSDirectory.open(Paths.get(predicateIndexDirectory));
+            instanceIndex = FSDirectory.open(Paths.get(instanceIndexDirectory));
+            
         } catch (Exception e) {
             System.err.println("Problem with initializing InstanceQueryProcessor\n" + e.getMessage());
         }

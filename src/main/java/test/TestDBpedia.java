@@ -37,8 +37,12 @@ public class TestDBpedia {
         
         try {
             DBpediaIndexer indexer = new DBpediaIndexer("luceneIndex");
-            indexer.addPredicate("actor", "http://dbpedia.org/ontology/Actor", "", "");
-            indexer.addPredicate("producer", "http://dbpedia.org/ontology/producer", "", "");
+            //indexer.addPredicate("actor", "http://dbpedia.org/ontology/Actor", "", "");
+            //indexer.addPredicate("producer", "http://dbpedia.org/ontology/producer", "", "");
+            
+            indexer.addInstance("game of thrones", "GoT"); 	
+
+    
             
             indexer.finilize();
             
@@ -47,10 +51,13 @@ public class TestDBpedia {
         }
 
         PredicateQueryProcessor processor = new PredicateQueryProcessor("luceneIndex");
-        List<Instance> top = processor.getTopMatches("developer", 1);
-        for(Instance t : top){
-            System.out.println(t);
-        }
+        Set<String> s = processor.getDBpediaResources("game", 10);
+        s.forEach(s1 -> System.out.println(s1));
+        
+//        List<Instance> top = processor.getTopMatches("developer", 1);
+//        for(Instance t : top){
+//            System.out.println(t);
+//        }
         
         
         

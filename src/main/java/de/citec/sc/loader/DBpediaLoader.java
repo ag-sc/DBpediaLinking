@@ -135,7 +135,20 @@ public class DBpediaLoader implements Loader {
                                         o = o.toLowerCase();
                                         dbpediaIndexer.addInstance(o, s);
                                     }
-                                } else if (s.startsWith("http://dbpedia.org/ontology/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+                                }
+                                else if (o.contains("http://dbpedia.org/resource/")
+                                        && p.equals("http://dbpedia.org/ontology/wikiPageRedirects")) {
+                                        // create entity index
+                                        //subject is the redirect page for the object
+                                        //remove  resource/ , underscore, convert to queryable string
+                                        s = s.replace("http://dbpedia.org/resource/", "");
+                                        s = s.replace("_", " ");
+                                        s = s.toLowerCase();
+                                        dbpediaIndexer.addInstance(s, o);
+                                    
+                                }
+                                
+                                else if (s.startsWith("http://dbpedia.org/ontology/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
 
                                     if (o.contains("\"@en")) {
                                         o = o.substring(1, o.length() - 4);
@@ -143,7 +156,17 @@ public class DBpediaLoader implements Loader {
                                         dbpediaIndexer.addPredicate(o, s, "", "");
                                     }
 
-                                } else if (s.startsWith("http") && p.startsWith("http") && o.contains("http")) {
+                                }
+                                else if (s.startsWith("http://dbpedia.org/property/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+
+                                    if (o.contains("\"@en")) {
+                                        o = o.substring(1, o.length() - 4);
+                                        o = o.toLowerCase();
+                                        dbpediaIndexer.addPredicate(o, s, "", "");
+                                    }
+
+                                }
+                                else if (s.startsWith("http") && p.startsWith("http") && o.contains("http")) {
                                     // create triple index
                                     //dbpediaIndexer.addTriple(s, p, o);
                                 }
