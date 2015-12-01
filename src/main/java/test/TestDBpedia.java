@@ -35,23 +35,22 @@ public class TestDBpedia {
 
     public static void main(String[] args) {
         
-        try {
-            DBpediaIndexer indexer = new DBpediaIndexer("luceneIndex");
-            //indexer.addPredicate("actor", "http://dbpedia.org/ontology/Actor", "", "");
-            //indexer.addPredicate("producer", "http://dbpedia.org/ontology/producer", "", "");
-            
-            indexer.addInstance("game of thrones", "GoT"); 	
-
-    
-            
-            indexer.finilize();
-            
-        } catch (IOException ex) {
-            Logger.getLogger(TestMATOLL.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            DBpediaIndexer indexer = new DBpediaIndexer("luceneIndex");
+//            //indexer.addPredicate("actor", "http://dbpedia.org/ontology/Actor", "", "");
+//            //indexer.addPredicate("producer", "http://dbpedia.org/ontology/producer", "", "");
+//            
+//            indexer.addInstance("free university in amsterdam", "VU");
+//    
+//            
+//            indexer.finilize();
+//            
+//        } catch (IOException ex) {
+//            Logger.getLogger(TestMATOLL.class.getName()).log(Level.SEVERE, null, ex);
+//        }
 
         PredicateQueryProcessor processor = new PredicateQueryProcessor("luceneIndex");
-        Set<String> s = processor.getDBpediaResources("game", 10);
+        Set<String> s = processor.getDBpediaResources("free university", 1000);
         s.forEach(s1 -> System.out.println(s1));
         
 //        List<Instance> top = processor.getTopMatches("developer", 1);

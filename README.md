@@ -21,7 +21,8 @@
 
 1) Download the file <a href="http://bit.ly/1OV4m76">wikipedia_anchors.ttl</a> and put under "anchorFiles" in the project folder
 
-2) Download the file <a href="http://bit.ly/1I3tGjs">lexicon.ttl</a> and put under "matollFiles" in the project folder
+2) Download the file <a href="http://bit.ly/1I3tGjs">lexicon.ttl</a> and put under "matollFiles" in the project folder OR look in <a href="http://dblexipedia.org/download">official website of MATOLL</a> to download "TTL" files.
+
 
 
 

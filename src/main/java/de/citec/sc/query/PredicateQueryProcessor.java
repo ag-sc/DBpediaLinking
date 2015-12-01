@@ -149,8 +149,8 @@ public class PredicateQueryProcessor implements QueryProcessor {
         
         try {
 
-            //Query q = new QueryParser("label", analyzer).parse(label);
-            Query q = new TermQuery(new Term("label", label));
+            //Query q = new QueryParser("label", analyzer).parse(label); // to query text fielde
+            Query q = new TermQuery(new Term("label", label)); //to query string fielde
 
             // 3. search
             int hitsPerPage = 1000;

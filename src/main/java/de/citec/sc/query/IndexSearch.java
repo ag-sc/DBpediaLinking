@@ -129,7 +129,7 @@ public class IndexSearch {
 
         QueryProcessor queryProcessor = new AnchorTextQueryProcessor();
 
-        List<Instance> instances = queryProcessor.getTopMatches(label, 10);
+        List<Instance> instances = queryProcessor.getTopMatches(label, 100);
 
         Set<String> result = new ArraySet<>();
         for (Instance c : instances) {

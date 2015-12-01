@@ -2,12 +2,20 @@ package de.citec.sc.loader;
 
 import de.citec.sc.indexer.DBpediaIndexer;
 import de.citec.sc.indexer.Indexer;
+import edu.stanford.nlp.util.ArrayHeap;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -16,9 +24,10 @@ public class DBpediaLoader implements Loader {
 
     //docDirectory => dbpedia *.nt files
     //luceneIndex => lucene creates indexes 
+    private Set<String> redirects;
+
     @Override
     public void load(boolean deleteIndexFiles, String indexDirectory, String dbpediaFilesDirectory) {
-        
 
         try {
             File indexFolder = new File(indexDirectory);
@@ -40,6 +49,9 @@ public class DBpediaLoader implements Loader {
             //load files
             File folder = new File(dbpediaFilesDirectory);
             File[] listOfFiles = folder.listFiles();
+
+            //get redirects pages only, not actual resources
+            redirects = getRedirects(new File("dbpediaFiles/redirects_en.nt"));
 
             for (int i = 0; i < listOfFiles.length; i++) {
                 if (listOfFiles[i].isFile() && !listOfFiles[i].isHidden()) {
@@ -133,22 +145,62 @@ public class DBpediaLoader implements Loader {
                                         //remove " and "@en from string
                                         o = o.substring(1, o.length() - 4);
                                         o = o.toLowerCase();
-                                        dbpediaIndexer.addInstance(o, s);
+
+                                        //remove after comma e.g. AS,_b
+                                        if (o.contains(",")) {
+                                            o = o.substring(0, o.indexOf(","));
+                                        }
+
+                                        //remove parantheses e.g. AS_(song)
+                                        if (o.contains("(") && o.contains(")")) {
+                                            o = o.substring(0, o.indexOf("(")).trim();
+                                        }
+
+                                        o = o.trim();
+
+                                        //check if Subject is not a redirect page
+                                        if (!redirects.contains(s)) {
+                                            dbpediaIndexer.addInstance(o, s);
+                                        }
                                     }
-                                }
-                                else if (o.contains("http://dbpedia.org/resource/")
+                                } else if (o.contains("http://dbpedia.org/resource/")
                                         && p.equals("http://dbpedia.org/ontology/wikiPageRedirects")) {
-                                        // create entity index
-                                        //subject is the redirect page for the object
-                                        //remove  resource/ , underscore, convert to queryable string
-                                        s = s.replace("http://dbpedia.org/resource/", "");
-                                        s = s.replace("_", " ");
-                                        s = s.toLowerCase();
-                                        dbpediaIndexer.addInstance(s, o);
+                                    // create entity index
+                                    //subject is the redirect page for the object
+                                    //remove  resource/ , underscore, convert to queryable string
+                                    s = s.replace("http://dbpedia.org/resource/", "");
+
+                                    s = s.replace("_", " ");
+                                    s = s.toLowerCase();
+
+                                    //remove after comma e.g. AS,_b
+                                    if (s.contains(",")) {
+                                        s = s.substring(0, s.indexOf(","));
+                                    }
+
+                                    //remove parantheses e.g. AS_(song)
+                                    if (s.contains("(") && s.contains(")")) {
+                                        s = s.substring(0, s.indexOf("(")).trim();
+                                    }
+
+                                    s = s.trim();
                                     
-                                }
-                                
-                                else if (s.startsWith("http://dbpedia.org/ontology/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+                                    if(o.contains("VU_University_Amsterdam")){
+                                        System.out.print(o + " ->  "+s);
+                                    }
+
+
+                                    dbpediaIndexer.addInstance(s, o);
+
+                                } else if (s.startsWith("http://dbpedia.org/ontology/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+
+                                    if (o.contains("\"@en")) {
+                                        o = o.substring(1, o.length() - 4);
+                                        o = o.toLowerCase();
+                                        dbpediaIndexer.addPredicate(o, s, "", "");
+                                    }
+
+                                } else if (s.startsWith("http://dbpedia.org/property/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
 
                                     if (o.contains("\"@en")) {
                                         o = o.substring(1, o.length() - 4);
@@ -157,19 +209,10 @@ public class DBpediaLoader implements Loader {
                                     }
 
                                 }
-                                else if (s.startsWith("http://dbpedia.org/property/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
-
-                                    if (o.contains("\"@en")) {
-                                        o = o.substring(1, o.length() - 4);
-                                        o = o.toLowerCase();
-                                        dbpediaIndexer.addPredicate(o, s, "", "");
-                                    }
-
-                                }
-                                else if (s.startsWith("http") && p.startsWith("http") && o.contains("http")) {
-                                    // create triple index
-                                    //dbpediaIndexer.addTriple(s, p, o);
-                                }
+//                                else if (s.startsWith("http") && p.startsWith("http") && o.contains("http")) {
+//                                    // create triple index
+//                                    //dbpediaIndexer.addTriple(s, p, o);
+//                                }
                             }
 
                             line = "";
@@ -190,6 +233,48 @@ public class DBpediaLoader implements Loader {
 
         }
 
+    }
+
+    public Set<String> getRedirects(File file) {
+        //HashMap<String, Set<String>> content = new HashMap<>();
+
+        Set<String> content = new LinkedHashSet<>();
+
+        try {
+            FileInputStream fstream = new FileInputStream(file);
+            DataInputStream in = new DataInputStream(fstream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+
+                if (!line.startsWith("#")) {
+                    //System.out.println(line);
+                    String[] a = line.split(" ");
+
+                    String s = a[0];
+
+                    String p = a[1];
+
+                    String o = a[2];
+
+                    s = s.replace("<", "");
+                    s = s.replace(">", "");
+                    p = p.replace("<", "");
+                    p = p.replace(">", "");
+                    o = o.replace("<", "");
+                    o = o.replace(">", "");
+
+                    content.add(s);
+
+                }
+            }
+            in.close();
+        } catch (Exception e) {
+            System.err.println("Error reading the file: " + file.getPath() + "\n" + e.getMessage());
+        }
+
+        return content;
     }
 
 }

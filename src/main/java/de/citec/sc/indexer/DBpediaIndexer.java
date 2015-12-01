@@ -72,7 +72,7 @@ public class DBpediaIndexer implements Indexer {
     public void addInstance(String label, String uri) throws IOException {
         instancesDoc = new Document();
 
-        Field labelField = new TextField("label", label, Field.Store.YES);
+        Field labelField = new StringField("label", label, Field.Store.YES);
         instancesDoc.add(labelField);
 
         Field uriField = new StringField("URI", uri, Field.Store.YES);
