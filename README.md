@@ -23,14 +23,22 @@
 
 2) Download the file <a href="http://bit.ly/1I3tGjs">lexicon.ttl</a> and put under "matollFiles" in the project folder OR look in <a href="http://dblexipedia.org/download">official website of MATOLL</a> to download "TTL" files.
 
+3) Download the following datasets, uncompress them to folder "dbpediaFiles", (the folder already includes "dbpedia_2015-04.nt") :
 
+
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/labels_en.nt.bz2" >labels_en.nt.bz2</a>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/mappingbased-properties_en.nt.bz2">mappingbased-properties_en.nt.bz2</a>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/infobox-property-definitions_en.nt.bz2">infobox-property-definitions_en.nt.bz2</a>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/persondata_en.nt.bz2">persondata_en.nt.bz2</a>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/redirects_en.nt.bz2">redirects_en.nt.bz2</a>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/infobox-properties_en.nt.bz2">infobox-properties_en.nt.bz2</a>
 
 
 
 <b>
 CREATE Index Files </b>
 
-Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/CreateIndexes.java">CreateIndexes</a> for creating indexes
+Run  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/CreateIndexes.java">CreateIndexes</a> to create indexes
 
 
 
@@ -38,7 +46,7 @@ Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/jav
 <b>
 RETRIEVAL of Data from Indexes </b>
 
-Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestIndexSearch.java">TestIndexSearch</a> for searching over created indexes
+Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestLucene.java">TestIndexSearch</a> for searching over created indexes
 
 
 

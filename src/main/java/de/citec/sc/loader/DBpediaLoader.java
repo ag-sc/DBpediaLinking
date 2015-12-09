@@ -1,8 +1,9 @@
 package de.citec.sc.loader;
 
-import de.citec.sc.indexer.DBpediaIndexer;
+import de.citec.sc.indexer.DBpediaLabelIndexer;
 import de.citec.sc.indexer.Indexer;
 import edu.stanford.nlp.util.ArrayHeap;
+import edu.stanford.nlp.util.ArraySet;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
@@ -24,6 +25,7 @@ public class DBpediaLoader implements Loader {
 
     //docDirectory => dbpedia *.nt files
     //luceneIndex => lucene creates indexes 
+    private Set<String> properties;
     private Set<String> redirects;
 
     @Override
@@ -50,8 +52,14 @@ public class DBpediaLoader implements Loader {
             File folder = new File(dbpediaFilesDirectory);
             File[] listOfFiles = folder.listFiles();
 
+            properties = readFile(new File("src/main/resources/propertyList.txt"));
             //get redirects pages only, not actual resources
+            //create redirect index before
+            //processor = new DBpediaRedirectQueryProcessor(true);
+            long start = System.currentTimeMillis();
+            System.out.println("Adding 'dbpediaFiles/redirects_en.nt' to memory for indexing");
             redirects = getRedirects(new File("dbpediaFiles/redirects_en.nt"));
+            long end = System.currentTimeMillis() - start;
 
             for (int i = 0; i < listOfFiles.length; i++) {
                 if (listOfFiles[i].isFile() && !listOfFiles[i].isHidden()) {
@@ -59,7 +67,7 @@ public class DBpediaLoader implements Loader {
                     if (fileExtension.equals("nt")) {
 
                         try {
-                            DBpediaIndexer indexer = new DBpediaIndexer(indexDirectory);
+                            DBpediaLabelIndexer indexer = new DBpediaLabelIndexer(indexDirectory);
 
                             long startTime = System.currentTimeMillis();
                             indexData(dbpediaFilesDirectory + listOfFiles[i].getName(), indexer);
@@ -100,7 +108,7 @@ public class DBpediaLoader implements Loader {
     public void indexData(String filePath, Indexer indexer) {
         try {
 
-            DBpediaIndexer dbpediaIndexer = (DBpediaIndexer) indexer;
+            DBpediaLabelIndexer dbpediaIndexer = (DBpediaLabelIndexer) indexer;
 
             System.out.println("Loading file: " + filePath);
             RandomAccessFile aFile = new RandomAccessFile(filePath, "r");
@@ -139,39 +147,67 @@ public class DBpediaLoader implements Loader {
 
                             if (!s.equals("") && !p.equals("") && !o.equals("")) {
                                 if (s.contains("http://dbpedia.org/resource/")
-                                        && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+                                        && properties.contains(p) && !s.contains("disambiguation")) {
                                     // create entity index
                                     if (o.contains("\"@en")) {
                                         //remove " and "@en from string
                                         o = o.substring(1, o.length() - 4);
-                                        o = o.toLowerCase();
-
-                                        //remove after comma e.g. AS,_b
-                                        if (o.contains(",")) {
-                                            o = o.substring(0, o.indexOf(","));
-                                        }
-
-                                        //remove parantheses e.g. AS_(song)
-                                        if (o.contains("(") && o.contains(")")) {
-                                            o = o.substring(0, o.indexOf("(")).trim();
-                                        }
-
-                                        o = o.trim();
-
-                                        //check if Subject is not a redirect page
-                                        if (!redirects.contains(s)) {
-                                            dbpediaIndexer.addInstance(o, s);
-                                        }
                                     }
+
+                                    //remove after comma e.g. AS,_b
+                                    if (o.contains(",")) {
+                                        o = o.substring(0, o.indexOf(","));
+                                    }
+
+                                    //remove parantheses e.g. AS_(song)
+                                    if (o.contains("(") && o.contains(")")) {
+                                        o = o.substring(0, o.indexOf("(")).trim();
+                                    }
+
+                                    o = o.trim();
+                                    o = o.toLowerCase();
+
+                                    //check if Subject is not a redirect page
+                                    //get subject for the given String s
+                                    //empty means this subject is not a redirect page
+                                    if (!redirects.contains(s)) {
+                                        dbpediaIndexer.addInstance(o, s);
+                                    }
+
                                 } else if (o.contains("http://dbpedia.org/resource/")
-                                        && p.equals("http://dbpedia.org/ontology/wikiPageRedirects")) {
+                                        && p.equals("http://dbpedia.org/ontology/wikiPageRedirects") && !o.contains("disambiguation")) {
                                     // create entity index
                                     //subject is the redirect page for the object
                                     //remove  resource/ , underscore, convert to queryable string
                                     s = s.replace("http://dbpedia.org/resource/", "");
 
                                     s = s.replace("_", " ");
-                                    s = s.toLowerCase();
+
+                                    String label = "";
+
+                                    //replace each big character with space and the same character
+                                    //indexing  accessible computing is better than AccessibleComputing
+                                    for (int k = 0; k < s.length(); k++) {
+                                        char c = s.charAt(k);
+                                        if (Character.isUpperCase(c)) {
+
+                                            if (k - 1 >= 0) {
+                                                String prev = s.charAt(k - 1) + "";
+                                                if (prev.equals(" ")) {
+                                                    label += c + "";
+                                                } else {
+                                                    //put space between characters
+                                                    label += " " + c;
+                                                }
+                                            } else {
+                                                label += c + "";
+                                            }
+                                        } else {
+                                            label += c + "";
+                                        }
+                                    }
+
+                                    s = label.toLowerCase();
 
                                     //remove after comma e.g. AS,_b
                                     if (s.contains(",")) {
@@ -184,11 +220,10 @@ public class DBpediaLoader implements Loader {
                                     }
 
                                     s = s.trim();
-                                    
                                     if(o.contains("VU_University_Amsterdam")){
-                                        System.out.print(o + " ->  "+s);
+                                        System.out.println(s);
                                     }
-
+                                    
 
                                     dbpediaIndexer.addInstance(s, o);
 
@@ -197,7 +232,7 @@ public class DBpediaLoader implements Loader {
                                     if (o.contains("\"@en")) {
                                         o = o.substring(1, o.length() - 4);
                                         o = o.toLowerCase();
-                                        dbpediaIndexer.addPredicate(o, s, "", "");
+                                        dbpediaIndexer.addPredicate(o, s);
                                     }
 
                                 } else if (s.startsWith("http://dbpedia.org/property/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
@@ -205,7 +240,7 @@ public class DBpediaLoader implements Loader {
                                     if (o.contains("\"@en")) {
                                         o = o.substring(1, o.length() - 4);
                                         o = o.toLowerCase();
-                                        dbpediaIndexer.addPredicate(o, s, "", "");
+                                        dbpediaIndexer.addPredicate(o, s);
                                     }
 
                                 }
@@ -268,6 +303,28 @@ public class DBpediaLoader implements Loader {
                     content.add(s);
 
                 }
+            }
+            in.close();
+        } catch (Exception e) {
+            System.err.println("Error reading the file: " + file.getPath() + "\n" + e.getMessage());
+        }
+
+        return content;
+    }
+
+    public Set<String> readFile(File file) {
+        Set<String> content = null;
+        try {
+            FileInputStream fstream = new FileInputStream(file);
+            DataInputStream in = new DataInputStream(fstream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String strLine;
+
+            while ((strLine = br.readLine()) != null) {
+                if (content == null) {
+                    content = new ArraySet<>();
+                }
+                content.add(strLine);
             }
             in.close();
         } catch (Exception e) {

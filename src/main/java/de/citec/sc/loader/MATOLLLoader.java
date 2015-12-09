@@ -129,12 +129,14 @@ public class MATOLLLoader implements Loader {
                     }
 
                     frequency = provenance.getFrequency();
-                    
+
                     //change to lower case
                     word = word.toLowerCase();
 
                     matollIndexer.addEntry(URI, word, frequency, POS, onProperty);
-
+//                    if (URI.equals("http://dbpedia.org/ontology/almaMater")) {
+//                        System.out.println(URI + word + frequency + POS + onProperty);
+//                    }
                 }
 
             }

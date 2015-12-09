@@ -37,13 +37,14 @@ public class WordNetAnalyzer {
      * @param delimiter character to delimit synonyms in return value
      * @return string containing synonyms separated by delimiter
      */
-    public String getSynonyms(String word, String delimiter) {
+    public Set<String> getSynonyms(String word) {
         HashSet<String> synStringSet = new HashSet<String>();
         Synset[] synsets = wordNetDatabase.getSynsets(word);
         for (Synset synset : synsets) {
+            
             Collections.addAll(synStringSet, synset.getWordForms());
         }
-        return String.join(delimiter, synStringSet);
+        return synStringSet;
     }
 
     /**

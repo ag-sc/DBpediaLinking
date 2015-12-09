@@ -2,20 +2,34 @@ package de.citec.sc.loader;
 
 import de.citec.sc.indexer.AnchorTextIndexer;
 import de.citec.sc.indexer.Indexer;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.io.StringReader;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.Properties;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
 
-public class AnchorTextLoader implements Loader{
+public class AnchorTextLoader implements Loader {
 
     //docDirectory => dbpedia *.nt files
     //luceneIndex => lucene creates indexes 
+   
+    HashMap<String, String> redirects;
+
     @Override
     public void load(boolean deleteIndexFiles, String indexDirectory, String anchorFilesDirectory) {
 
@@ -36,7 +50,11 @@ public class AnchorTextLoader implements Loader{
                     }
                 }
             }
-            
+
+            //processor = new DBpediaRedirectQueryProcessor(true);
+            System.out.println("Adding 'dbpediaFiles/redirects_en.nt' to memory for indexing");
+            redirects = getRedirects(new File("dbpediaFiles/redirects_en.nt"));
+
             //load files
             File folder = new File(anchorFilesDirectory);
             File[] listOfFiles = folder.listFiles();
@@ -71,6 +89,62 @@ public class AnchorTextLoader implements Loader{
 
     }
 
+    public static HashMap<String, String> getRedirects(File file) {
+        HashMap<String, String> content = new HashMap<>();
+
+        try {
+            FileInputStream fstream = new FileInputStream(file);
+            DataInputStream in = new DataInputStream(fstream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+
+                if (!line.startsWith("#")) {
+                    //System.out.println(line);
+                    String[] a = line.split(" ");
+
+                    String s = a[0];
+
+                    String p = a[1];
+
+                    String o = a[2];
+
+                    s = s.replace("<", "");
+                    s = s.replace(">", "");
+                    p = p.replace("<", "");
+                    p = p.replace(">", "");
+                    o = o.replace("<", "");
+                    o = o.replace(">", "");
+
+                    Properties p1 = new Properties();
+                    try {
+                        p1.load(new StringReader("key=" + s));
+                    } catch (IOException ex) {
+
+                    }
+                    s = p1.getProperty("key");
+
+                    p1 = new Properties();
+                    try {
+                        p1.load(new StringReader("key=" + o));
+                    } catch (IOException ex) {
+
+                    }
+                    o = p1.getProperty("key");
+
+                    content.put(s, o);
+
+                }
+            }
+            in.close();
+        } catch (Exception e) {
+            System.err.println("Error reading the file: " + file.getPath() + "\n" + e.getMessage());
+        }
+
+        return content;
+    }
+
     private static void deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if (files != null) { //some JVMs return null for empty dirs
@@ -89,7 +163,7 @@ public class AnchorTextLoader implements Loader{
     @Override
     public void indexData(String filePath, Indexer indexer) {
         try {
-            
+
             AnchorTextIndexer anchorIndexer = (AnchorTextIndexer) indexer;
 
             System.out.println("Loading file: " + filePath);
@@ -109,10 +183,29 @@ public class AnchorTextLoader implements Loader{
                             String uri = all[1];
                             int freq = Integer.parseInt(all[2]);
 
-                            label  = label.toLowerCase();
+                            label = label.toLowerCase();
+
+                            Properties p1 = new Properties();
+                            try {
+                                p1.load(new StringReader("key=" + uri));
+                            } catch (IOException ex) {
+
+                            }
+                            uri = p1.getProperty("key");
+                            uri = URLDecoder.decode(uri, "UTF-8");
                             
-                            anchorIndexer.addEntity(label, uri, freq);
-                            
+                            if(!redirects.containsKey(uri)){
+                                anchorIndexer.addEntity(label, uri, freq);
+                            }
+
+//                            Set<String> subjects = processor.getSubject(uri);
+//                            if (subjects.isEmpty()) {
+//                                anchorIndexer.addEntity(label, uri, freq);
+//                            }
+//                            else{
+//                                int z=2;
+//                            }
+
                         } catch (Exception ex) {
                             System.err.println(line);
                         }

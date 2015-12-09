@@ -14,11 +14,11 @@ import java.util.Objects;
 public class Instance implements Comparable<Instance> {
 
     private String uri;
-    private int freq;
+    private double freq;
     private String pos;
     private String onProperty;
 
-    public Instance(String uri, int freq) {
+    public Instance(String uri, double freq) {
         this.uri = uri;
         this.freq = freq;
     }
@@ -39,15 +39,21 @@ public class Instance implements Comparable<Instance> {
         return "Instance{" + "uri=" + uri + ", freq=" + freq + ", pos=" + pos + ", onProperty=" + onProperty + '}';
     }
 
-    
+    public double getFreq() {
+        return freq;
+    }
+
+    public void setFreq(double freq) {
+        this.freq = freq;
+    }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 29 * hash + Objects.hashCode(this.uri);
-        hash = 29 * hash + this.freq;
-        hash = 29 * hash + Objects.hashCode(this.pos);
-        hash = 29 * hash + Objects.hashCode(this.onProperty);
+        hash = 97 * hash + Objects.hashCode(this.uri);
+        hash = 97 * hash + (int) (Double.doubleToLongBits(this.freq) ^ (Double.doubleToLongBits(this.freq) >>> 32));
+        hash = 97 * hash + Objects.hashCode(this.pos);
+        hash = 97 * hash + Objects.hashCode(this.onProperty);
         return hash;
     }
 
@@ -63,7 +69,7 @@ public class Instance implements Comparable<Instance> {
         if (!Objects.equals(this.uri, other.uri)) {
             return false;
         }
-        if (this.freq != other.freq) {
+        if (Double.doubleToLongBits(this.freq) != Double.doubleToLongBits(other.freq)) {
             return false;
         }
         if (!Objects.equals(this.pos, other.pos)) {
@@ -75,22 +81,12 @@ public class Instance implements Comparable<Instance> {
         return true;
     }
 
-    
-
     public String getUri() {
         return uri;
     }
 
     public void setUri(String uri) {
         this.uri = uri;
-    }
-
-    public int getFreq() {
-        return freq;
-    }
-
-    public void setFreq(int freq) {
-        this.freq = freq;
     }
 
     public String getPos() {

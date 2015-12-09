@@ -7,76 +7,64 @@ package test;
 
 import de.citec.sc.lemmatizer.Lemmatizer;
 import de.citec.sc.lemmatizer.StanfordLemmatizer;
-import de.citec.sc.query.IndexSearch;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
+import de.citec.sc.query.Search;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author sherzod
  */
-public class TestLuceneIndex {
+public class TestSearch {
 
     public static void main(String[] args) {
-        IndexSearch indexSearch = new IndexSearch();
+        Search indexSearch = new Search(false);
+
         Lemmatizer lemmatizer = new StanfordLemmatizer();
 
-        String word = "film festival";
-        
+        String word = "wheat";
+        int topK = 1000;
+
         Set<String> queryTerms = new LinkedHashSet<>();
         queryTerms.add(word);
         queryTerms.add(lemmatizer.lemmatize(word));
         queryTerms.add(word + "~");
         queryTerms.add(lemmatizer.lemmatize(word) + "~");
-        
-        
+
         Set<String> result = new LinkedHashSet<>();
-        for(String  q : queryTerms){
-            result.addAll(indexSearch.getEntitiesFromDBpediaOntology(q));
+        for (String q : queryTerms) {
+            result.addAll(indexSearch.getResourcesFromDBpedia(q, topK));
         }
         System.out.println("Entities from DBpedia Ontology:\n");
         result.forEach(System.out::println);
-        
+
         result = new LinkedHashSet<>();
-        for(String  q : queryTerms){
-            result.addAll(indexSearch.getEntitiesFromAnchorText(q));
+        for (String q : queryTerms) {
+            result.addAll(indexSearch.getResourcesFromAnchors(q, topK));
         }
         System.out.println("\nEntities from Anchor Text:\n");
         result.forEach(System.out::println);
-        
-        
+
         result = new LinkedHashSet<>();
-        
-        for(String  q : queryTerms){
-            result.addAll(indexSearch.getAllPredicates(q));
+        for (String q : queryTerms) {
+            result.addAll(indexSearch.getAllPredicates(q, topK));
         }
         System.out.println("======================================\nProperties:\n");
         result.forEach(System.out::println);
-        
-        
+
         result = new LinkedHashSet<>();
-        for(String  q : queryTerms){
-            result.addAll(indexSearch.getClasses(q, true));
+        for (String q : queryTerms) {
+            result.addAll(indexSearch.getClassesFromDBpedia(q, topK));
         }
         System.out.println("======================================\nClasses:\n");
         result.forEach(System.out::println);
-        
-        
-        result = new LinkedHashSet<>();
-        for(String  q : queryTerms){
-            result.addAll(indexSearch.getRestrictionClassesFromMATOLL(q, true));
-        }
-        System.out.println("======================================\nnRestriction Classes:\n");
-        result.forEach(System.out::println);
-        
-       
 
+        result = new LinkedHashSet<>();
+        for (String q : queryTerms) {
+            result.addAll(indexSearch.getRestrictionClassesFromMATOLL(q, topK));
+        }
+        System.out.println("======================================\nRestriction Classes:\n");
+        result.forEach(System.out::println);
 
     }
 }

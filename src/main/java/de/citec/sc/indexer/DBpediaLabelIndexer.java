@@ -19,19 +19,22 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-public class DBpediaIndexer implements Indexer {
+public class DBpediaLabelIndexer implements Indexer {
 
     private Path triplesIndexPath;
     private Path predicatesIndexPath;
     private Path instancesIndexPath;
+    private Path redirectsIndexPath;
 
     private IndexWriter triplesIndexWriter;
     private IndexWriter predicatesIndexWriter;
     private IndexWriter instancesIndexWriter;
+    private IndexWriter redirectsIndexWriter;
 
     private Document triplesDoc;
     private Document predicatesDoc;
     private Document instancesDoc;
+    private Document redirectsDoc;
 
     public void addTriple(String subjectUri, String predicateUri, String objectUri) throws IOException {
         triplesDoc = new Document();
@@ -48,21 +51,35 @@ public class DBpediaIndexer implements Indexer {
         //System.out.println(triplesDoc.toString());
         triplesIndexWriter.addDocument(triplesDoc);
     }
+    
+    public void addRedirect(String subjectUri, String redirectUri) throws IOException {
+        redirectsDoc = new Document();
 
-    public void addPredicate(String label, String uri, String synonyms, String hypernyms) throws IOException {
+        Field subjectField = new StringField("subject", subjectUri, Field.Store.YES);
+        redirectsDoc.add(subjectField);
+
+        Field redirectField = new StringField("redirect", redirectUri, Field.Store.YES);
+        redirectsDoc.add(redirectField);
+
+
+        //System.out.println(triplesDoc.toString());
+        redirectsIndexWriter.addDocument(redirectsDoc);
+    }
+
+    public void addPredicate(String label, String uri) throws IOException {
         predicatesDoc = new Document();
 
-        Field labelField = new TextField("label", label, Field.Store.YES);
+        Field labelField = new StringField("label", label, Field.Store.YES);
         predicatesDoc.add(labelField);
 
         Field uriField = new StringField("URI", uri, Field.Store.YES);
         predicatesDoc.add(uriField);
 
-        Field synonymsField = new TextField("synonyms", synonyms, Field.Store.NO);
-        predicatesDoc.add(synonymsField);
+        Field tokenized = new TextField("labelTokenized", label, Field.Store.YES);
+        predicatesDoc.add(tokenized);
 
-        Field hypernymsField = new TextField("hyponyms", hypernyms, Field.Store.NO);
-        predicatesDoc.add(hypernymsField);
+//        Field hypernymsField = new TextField("hyponyms", hypernyms, Field.Store.NO);
+//        predicatesDoc.add(hypernymsField);
 
         //Field derivationalWordsField = new TextField("derivationalWords", derivationalWords, Field.Store.NO);
         //predicatesDoc.add(derivationalWordsField);
@@ -74,6 +91,9 @@ public class DBpediaIndexer implements Indexer {
 
         Field labelField = new StringField("label", label, Field.Store.YES);
         instancesDoc.add(labelField);
+        
+        Field tokenized = new TextField("labelTokenized", label, Field.Store.YES);
+        instancesDoc.add(tokenized);
 
         Field uriField = new StringField("URI", uri, Field.Store.YES);
         instancesDoc.add(uriField);
@@ -113,6 +133,11 @@ public class DBpediaIndexer implements Indexer {
         instancesIndexPath = Paths.get(folderPath, "instancesindex");
         instancesIndexWriter = initIndexWriter(instancesIndexPath, true);
         instancesDoc = new Document();
+        
+        redirectsIndexPath = Paths.get(folderPath, "redirectsindex");
+        redirectsIndexWriter = initIndexWriter(redirectsIndexPath, true);
+        redirectsDoc = new Document();
+        
         }
         catch(Exception e){
             e.printStackTrace();
@@ -127,13 +152,14 @@ public class DBpediaIndexer implements Indexer {
             triplesIndexWriter.close();
             predicatesIndexWriter.close();
             instancesIndexWriter.close();
+            redirectsIndexWriter.close();
         } catch (IOException ex) {
-            Logger.getLogger(DBpediaIndexer.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBpediaLabelIndexer.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
-    public DBpediaIndexer(String filePath) {
+    public DBpediaLabelIndexer(String filePath) {
         initIndex(filePath);
     }
     

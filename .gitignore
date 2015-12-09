@@ -1,6 +1,10 @@
 *.class
 *.war
 *.ear
+*.nt
+*.bz2
+*.ttl
+*.txt
 
 .DS_Store
 
@@ -12,3 +16,7 @@
 /luceneIndex
 
 /matollIndex
+
+/libs/matoll-0.0.1.jar
+log.out
+
