@@ -46,7 +46,7 @@ Run  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/
 <b>
 RETRIEVAL of Data from Indexes </b>
 
-Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestLucene.java">TestIndexSearch</a> for searching over created indexes
+Check  <a href="https://github.com/ag-sc/DBpediaLinking/blob/master/src/main/java/test/TestSearch.java">TestSearch</a> for searching over created indexes
 
 
 
