@@ -26,12 +26,12 @@
 3) Download the following datasets, uncompress them to folder "dbpediaFiles", (the folder already includes "dbpedia_2015-04.nt") :
 
 
-<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/labels_en.nt.bz2" >labels_en.nt.bz2</a>
-<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/mappingbased-properties_en.nt.bz2">mappingbased-properties_en.nt.bz2</a>
-<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/infobox-property-definitions_en.nt.bz2">infobox-property-definitions_en.nt.bz2</a>
-<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/persondata_en.nt.bz2">persondata_en.nt.bz2</a>
-<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/redirects_en.nt.bz2">redirects_en.nt.bz2</a>
-<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/infobox-properties_en.nt.bz2">infobox-properties_en.nt.bz2</a>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/labels_en.nt.bz2" >labels_en.nt.bz2</a> </p>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/mappingbased-properties_en.nt.bz2">mappingbased-properties_en.nt.bz2</a> </p>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/infobox-property-definitions_en.nt.bz2">infobox-property-definitions_en.nt.bz2</a> </p>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/persondata_en.nt.bz2">persondata_en.nt.bz2</a> </p>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/redirects_en.nt.bz2">redirects_en.nt.bz2</a> </p>
+<a href="http://downloads.dbpedia.org/2015-04/core-i18n/en/infobox-properties_en.nt.bz2">infobox-properties_en.nt.bz2</a> </p>
 
 
 
