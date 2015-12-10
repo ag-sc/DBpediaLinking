@@ -1,4 +1,4 @@
-package main.java.de.citec.sc.luceneIndex;
+package de.citec.sc.loader;
 
 import edu.smu.tspell.wordnet.NounSynset;
 import edu.smu.tspell.wordnet.Synset;
