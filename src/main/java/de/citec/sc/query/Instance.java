@@ -17,6 +17,7 @@ public class Instance implements Comparable<Instance> {
     private double freq;
     private String pos;
     private String onProperty;
+    private double pageRank;
 
     public Instance(String uri, double freq) {
         this.uri = uri;
@@ -25,9 +26,9 @@ public class Instance implements Comparable<Instance> {
 
     @Override
     public int compareTo(Instance o) {
-        if (freq > o.freq) {
+        if (pageRank > o.pageRank) {
             return -1;
-        } else if (freq < o.freq) {
+        } else if (pageRank < o.pageRank) {
             return 1;
         }
 
@@ -36,8 +37,10 @@ public class Instance implements Comparable<Instance> {
 
     @Override
     public String toString() {
-        return "Instance{" + "uri=" + uri + ", freq=" + freq + ", pos=" + pos + ", onProperty=" + onProperty + '}';
+        return "Instance{" + "uri=" + uri + ", freq=" + freq + ", pos=" + pos + ", onProperty=" + onProperty + ", pageRank=" + pageRank + '}';
     }
+
+   
 
     public double getFreq() {
         return freq;
@@ -47,13 +50,22 @@ public class Instance implements Comparable<Instance> {
         this.freq = freq;
     }
 
+    public double getPageRank() {
+        return pageRank;
+    }
+
+    public void setPageRank(double pageRank) {
+        this.pageRank = pageRank;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.uri);
-        hash = 97 * hash + (int) (Double.doubleToLongBits(this.freq) ^ (Double.doubleToLongBits(this.freq) >>> 32));
-        hash = 97 * hash + Objects.hashCode(this.pos);
-        hash = 97 * hash + Objects.hashCode(this.onProperty);
+        hash = 37 * hash + Objects.hashCode(this.uri);
+        hash = 37 * hash + (int) (Double.doubleToLongBits(this.freq) ^ (Double.doubleToLongBits(this.freq) >>> 32));
+        hash = 37 * hash + Objects.hashCode(this.pos);
+        hash = 37 * hash + Objects.hashCode(this.onProperty);
+        hash = 37 * hash + (int) (Double.doubleToLongBits(this.pageRank) ^ (Double.doubleToLongBits(this.pageRank) >>> 32));
         return hash;
     }
 
@@ -76,6 +88,9 @@ public class Instance implements Comparable<Instance> {
             return false;
         }
         if (!Objects.equals(this.onProperty, other.onProperty)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.pageRank) != Double.doubleToLongBits(other.pageRank)) {
             return false;
         }
         return true;

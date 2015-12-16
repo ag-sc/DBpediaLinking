@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
@@ -26,7 +27,8 @@ public class DBpediaLoader implements Loader {
     //docDirectory => dbpedia *.nt files
     //luceneIndex => lucene creates indexes 
     private Set<String> properties;
-    private Set<String> redirects;
+    private Set<String> redirects = new LinkedHashSet<String>();
+    private HashMap<String, Double> pageRanks = new HashMap<String, Double>();
 
     @Override
     public void load(boolean deleteIndexFiles, String indexDirectory, String dbpediaFilesDirectory) {
@@ -60,6 +62,14 @@ public class DBpediaLoader implements Loader {
             System.out.println("Adding 'dbpediaFiles/redirects_en.nt' to memory for indexing");
             redirects = getRedirects(new File("dbpediaFiles/redirects_en.nt"));
             long end = System.currentTimeMillis() - start;
+            System.out.println("DONE " + (end)+ " ms.");
+            
+            start = System.currentTimeMillis();
+            System.out.println("Adding 'dbpediaFiles/pageranks.ttl' to memory for indexing");
+            pageRanks = getPageRanks(new File("dbpediaFiles/pageranks.ttl"));
+            end = System.currentTimeMillis() - start;
+            System.out.println("DONE " + (end)+ " ms.");
+            
 
             for (int i = 0; i < listOfFiles.length; i++) {
                 if (listOfFiles[i].isFile() && !listOfFiles[i].isHidden()) {
@@ -171,7 +181,13 @@ public class DBpediaLoader implements Loader {
                                     //get subject for the given String s
                                     //empty means this subject is not a redirect page
                                     if (!redirects.contains(s)) {
-                                        dbpediaIndexer.addInstance(o, s);
+                                        double rank = 0;
+                                        if(pageRanks.get(s) != null){
+                                            rank = pageRanks.get(s);
+                                        }
+                                        
+                                        s = URLDecoder.decode(s, "UTF-8");
+                                        dbpediaIndexer.addInstance(o, s, rank);
                                     }
 
                                 } else if (o.contains("http://dbpedia.org/resource/")
@@ -220,19 +236,32 @@ public class DBpediaLoader implements Loader {
                                     }
 
                                     s = s.trim();
-                                    if(o.contains("VU_University_Amsterdam")){
-                                        System.out.println(s);
+
+                                    double rank = 0;
+                                    if(pageRanks.get(o) != null){
+                                        rank = pageRanks.get(o);
                                     }
                                     
-
-                                    dbpediaIndexer.addInstance(s, o);
+                                    o = URLDecoder.decode(o, "UTF-8");
+                                    dbpediaIndexer.addInstance(s, o, rank);
 
                                 } else if (s.startsWith("http://dbpedia.org/ontology/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
 
                                     if (o.contains("\"@en")) {
                                         o = o.substring(1, o.length() - 4);
                                         o = o.toLowerCase();
-                                        dbpediaIndexer.addPredicate(o, s);
+                                        
+                                        //check if predicate or class
+                                        //if s starts with bigger letter, witout namespace
+                                        if(s.replace("http://dbpedia.org/ontology/", "").matches("^[A-Z].*")){
+                                            //add to class index
+                                            dbpediaIndexer.addClass(o, s);
+                                        }
+                                        else{
+                                            //add to predicate index
+                                            dbpediaIndexer.addPredicate(o, s);
+                                        }
+                                        
                                     }
 
                                 } else if (s.startsWith("http://dbpedia.org/property/") && p.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
@@ -240,7 +269,7 @@ public class DBpediaLoader implements Loader {
                                     if (o.contains("\"@en")) {
                                         o = o.substring(1, o.length() - 4);
                                         o = o.toLowerCase();
-                                        dbpediaIndexer.addPredicate(o, s);
+                                        dbpediaIndexer.addPropertyPredicate(o, s);
                                     }
 
                                 }
@@ -265,6 +294,7 @@ public class DBpediaLoader implements Loader {
             aFile.close();
         } catch (Exception e) {
             System.err.println("Problem with reading from file : " + filePath + " !!!\n" + e.getMessage());
+            e.printStackTrace();
 
         }
 
@@ -310,6 +340,45 @@ public class DBpediaLoader implements Loader {
         }
 
         return content;
+    }
+
+    public HashMap<String, Double> getPageRanks(File file) {
+        //HashMap<String, Set<String>> content = new HashMap<>();
+
+        HashMap<String, Double> ranks = new HashMap<>();
+
+        try {
+            FileInputStream fstream = new FileInputStream(file);
+            DataInputStream in = new DataInputStream(fstream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+
+                if (!line.startsWith("#")) {
+                    //System.out.println(line);
+                    try{
+                    String[] content = line.split("\t");
+
+                    String uri = content[0];
+                    uri = uri.substring(1, uri.length() - 1);
+                    String value = content[3].replace("^^<http://www.w3.org/2001/XMLSchema#float>] .", "").replace("\"", "");
+                    double rank = Double.parseDouble(value);
+                    
+                    ranks.put(uri, rank);
+                    }
+                    catch(Exception e){
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+            in.close();
+        } catch (Exception e) {
+            System.err.println("Error reading the file: " + file.getPath() + "\n" + e.getMessage());
+        }
+
+        return ranks;
     }
 
     public Set<String> readFile(File file) {

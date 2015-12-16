@@ -20,51 +20,47 @@ public class TestSearch {
     public static void main(String[] args) {
         Search indexSearch = new Search(false);
 
-        Lemmatizer lemmatizer = new StanfordLemmatizer();
+        String word = "obama";
+        int topK = 1;
+        boolean lemmatize = true;
+        boolean useWordNet = true;
 
-        String word = "wheat";
-        int topK = 1000;
-
-        Set<String> queryTerms = new LinkedHashSet<>();
-        queryTerms.add(word);
-        queryTerms.add(lemmatizer.lemmatize(word));
-        queryTerms.add(word + "~");
-        queryTerms.add(lemmatizer.lemmatize(word) + "~");
-
+        
         Set<String> result = new LinkedHashSet<>();
-        for (String q : queryTerms) {
-            result.addAll(indexSearch.getResourcesFromDBpedia(q, topK));
-        }
+        
+        long start = System.currentTimeMillis();
+        result.addAll(indexSearch.getResourcesFromDBpedia(word, topK, lemmatize, useWordNet));
+        long end = System.currentTimeMillis();
+        System.out.println((end - start) +" ms");
         System.out.println("Entities from DBpedia Ontology:\n");
         result.forEach(System.out::println);
 
         result = new LinkedHashSet<>();
-        for (String q : queryTerms) {
-            result.addAll(indexSearch.getResourcesFromAnchors(q, topK));
-        }
+        start = System.currentTimeMillis();
+        result.addAll(indexSearch.getResourcesFromAnchors(word, topK, lemmatize, useWordNet));
+        end = System.currentTimeMillis();
+        System.out.println((end - start) +" ms");
         System.out.println("\nEntities from Anchor Text:\n");
         result.forEach(System.out::println);
 
         result = new LinkedHashSet<>();
-        for (String q : queryTerms) {
-            result.addAll(indexSearch.getAllPredicates(q, topK));
-        }
+        
+        result.addAll(indexSearch.getAllPredicates(word, topK, lemmatize, useWordNet));
         System.out.println("======================================\nProperties:\n");
         result.forEach(System.out::println);
 
         result = new LinkedHashSet<>();
-        for (String q : queryTerms) {
-            result.addAll(indexSearch.getClassesFromDBpedia(q, topK));
-        }
+        
+        result.addAll(indexSearch.getClassesFromDBpedia(word, topK, lemmatize, useWordNet));
         System.out.println("======================================\nClasses:\n");
         result.forEach(System.out::println);
 
         result = new LinkedHashSet<>();
-        for (String q : queryTerms) {
-            result.addAll(indexSearch.getRestrictionClassesFromMATOLL(q, topK));
-        }
+        
+        result.addAll(indexSearch.getRestrictionClassesFromMATOLL(word, topK, lemmatize, useWordNet));
         System.out.println("======================================\nRestriction Classes:\n");
         result.forEach(System.out::println);
 
+        
     }
 }

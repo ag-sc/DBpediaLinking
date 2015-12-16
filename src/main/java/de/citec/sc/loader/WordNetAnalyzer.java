@@ -75,7 +75,7 @@ public class WordNetAnalyzer {
      * @return list containing synonyms and derivational words, separated by
      * delimiter
      */
-    public List<String> getDerivationalWords(String word, String delimiter) {
+    public List<String> getDerivationalWords(String word) {
         List<String> derivStringSet = new ArrayList<String>();
         derivStringSet.add(word);
         
@@ -87,7 +87,6 @@ public class WordNetAnalyzer {
                     if (!derivStringSet.contains(w.getWordForm())) {
                         derivStringSet.add(w.getWordForm());
                     }
-
                 }
             }
         }

@@ -6,6 +6,7 @@
 package de.citec.sc.query;
 
 import edu.stanford.nlp.util.ArraySet;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -23,11 +24,16 @@ import org.apache.lucene.store.RAMDirectory;
  */
 public class DBpediaRetriever extends LabelRetriever {
 
-    private String predicatesIndexPath = "predicatesindex";
-    private String instancesIndexPath = "instancesindex";
+    private String ontologyPredicateIndexPath = "ontologyPredicateIndex";
+    private String propertyPredicateIndexPath = "propertyPredicateIndex";
+    private String classIndexPath = "classIndex";
+    private String instancesIndexPath = "resourceIndex";
     private String directory;
     private StandardAnalyzer analyzer;
-    private Directory predicateIndexDirectory;
+
+    private Directory ontologyPredicateIndexDirectory;
+    private Directory propertyPredicateIndexDirectory;
+    private Directory classIndexDirectory;
     private Directory instanceIndexDirectory;
 
     public DBpediaRetriever(String directory, boolean loadIntoMemory) {
@@ -38,14 +44,21 @@ public class DBpediaRetriever extends LabelRetriever {
 
     private void initIndexDirectory(boolean loadToMemory) {
         try {
-            String predicatePath = directory + "/" + this.predicatesIndexPath + "/";
+            String ontologyPredicatePath = directory + "/" + this.ontologyPredicateIndexPath + "/";
+            String propertyPredicatePath = directory + "/" + this.propertyPredicateIndexPath + "/";
+            String classPath = directory + "/" + this.classIndexPath + "/";
             String instancePath = directory + "/" + this.instancesIndexPath + "/";
+
             analyzer = new StandardAnalyzer();
             if (loadToMemory) {
-                predicateIndexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(predicatePath)), IOContext.DEFAULT);
+                ontologyPredicateIndexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(ontologyPredicatePath)), IOContext.DEFAULT);
+                propertyPredicateIndexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(propertyPredicatePath)), IOContext.DEFAULT);
+                classIndexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(classPath)), IOContext.DEFAULT);
                 instanceIndexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(instancePath)), IOContext.DEFAULT);
             } else {
-                predicateIndexDirectory = FSDirectory.open(Paths.get(predicatePath));
+                ontologyPredicateIndexDirectory = FSDirectory.open(Paths.get(ontologyPredicatePath));
+                propertyPredicateIndexDirectory = FSDirectory.open(Paths.get(propertyPredicatePath));
+                classIndexDirectory = FSDirectory.open(Paths.get(classPath));
                 instanceIndexDirectory = FSDirectory.open(Paths.get(instancePath));
             }
 
@@ -60,12 +73,22 @@ public class DBpediaRetriever extends LabelRetriever {
     public Set<String> getPredicates(String searchTerm, int k, String nameSpace) {
 
         //get the highest number of math
-        Set<Instance> resultDirectMatches = getDirectMatches(searchTerm, "label", "URI", 10000, predicateIndexDirectory);
-        Set<Instance> resultPartialMatches = getPartialMatches(searchTerm, "label", "URI", 10000, predicateIndexDirectory, analyzer);
+        Directory searchDirectory = null;
+        if (nameSpace.equals("http://dbpedia.org/ontology/")) {
+            searchDirectory = ontologyPredicateIndexDirectory;
+        }
+        if (nameSpace.equals("http://dbpedia.org/property/")) {
+            searchDirectory = propertyPredicateIndexDirectory;
+        }
+
+        Set<Instance> resultDirectMatches = getDirectMatches(searchTerm, "label", "URI", k, searchDirectory);
+        //direct matches aren't enough search within tokenized part too
+        if (resultDirectMatches.size() < k) {
+            Set<Instance> resultPartialMatches = getPartialMatches(searchTerm, "labelTokenized", "URI", k - resultDirectMatches.size(), searchDirectory, analyzer);
+            resultDirectMatches.addAll(resultPartialMatches);
+        }
 
         Set<String> predicates = new LinkedHashSet<>();
-
-        resultDirectMatches.addAll(resultPartialMatches);
 
         //filter out classes, predicates with namespace "http:dbpedia,org/property"
         List<String> namespaces = new ArrayList<>();
@@ -104,52 +127,42 @@ public class DBpediaRetriever extends LabelRetriever {
     }
 
     /**
-     * return predicates with namespace http://dbpedia.org/ontology/
+     * return predicates with namespace http://dbpedia.org/ontology/ and http://dbpedia.org/property/
      */
     public Set<String> getAllPredicates(String searchTerm, int k) {
 
-        //get the highest number of math
-        Set<Instance> resultDirectMatches = getDirectMatches(searchTerm, "label", "URI", 10000, predicateIndexDirectory);
-        Set<Instance> resultPartialMatches = getPartialMatches(searchTerm, "label", "URI", 10000, predicateIndexDirectory, analyzer);
+        //get 
+        Directory searchDirectory = ontologyPredicateIndexDirectory;
 
-        Set<String> predicates = new LinkedHashSet<>();
+        Set<Instance> resultDirectMatches = getDirectMatches(searchTerm, "label", "URI", k/2, searchDirectory);
 
-        resultDirectMatches.addAll(resultPartialMatches);
+        if (resultDirectMatches.size() < k/2) {
+            Set<Instance> resultPartialMatch = getPartialMatches(searchTerm, "labelTokenized", "URI", k/2 - resultDirectMatches.size(), searchDirectory, analyzer);
 
-        //filter out classes, predicates with namespace "http:dbpedia,org/property"
-        List<String> namespaces = new ArrayList<>();
-        namespaces.add("http://dbpedia.org/ontology/");
-        namespaces.add("http://dbpedia.org/property/");
-
-        for (Instance i1 : resultDirectMatches) {
-
-            if (predicates.size() < k) {
-                String firstLetter = "";
-                String uri = i1.getUri();
-
-                String n = uri.substring(0, uri.lastIndexOf("/") + 1);//rhttp://dbpedia.org/ontology/, http://dbpedia.org/property/
-
-                //if any of the namespaces match
-                if (namespaces.contains(n)) {
-                    if (uri.replace(n, "").length() > 1) {
-                        firstLetter = uri.replace(n, "").substring(0, 1);
-
-                        //this part means that if the firstLetter is in lowercase it stands for predicates
-                        //unlike classes which start with upperCase e.g. http://dbpedia.org/ontology/River
-                        if (firstLetter.equals(firstLetter.toLowerCase())) {
-                            if (!predicates.contains(uri)) {
-                                predicates.add(uri);
-                            }
-                        }
-                    }
-                }
-            } else {
-                break;
-            }
-
+            //add partial matches to direct
+            resultDirectMatches.addAll(resultPartialMatch);
         }
 
-        //predicates = sortBySimilarity(predicates, searchTerm, k);
+        Set<String> predicates = new LinkedHashSet<>();
+        resultDirectMatches.forEach(e1 -> predicates.add(e1.getUri()));
+        
+        
+        //get property predicates
+        resultDirectMatches.clear();
+        searchDirectory = propertyPredicateIndexDirectory;
+
+        resultDirectMatches = getDirectMatches(searchTerm, "label", "URI", k/2, searchDirectory);
+
+        if (resultDirectMatches.size() < k/2) {
+            Set<Instance> resultPartialMatch = getPartialMatches(searchTerm, "labelTokenized", "URI", k/2 - resultDirectMatches.size(), searchDirectory, analyzer);
+
+            //add partial matches to direct
+            resultDirectMatches.addAll(resultPartialMatch);
+        }
+        
+        resultDirectMatches.forEach(e1 -> predicates.add(e1.getUri()));
+        
+        
         return predicates;
     }
 
@@ -159,33 +172,18 @@ public class DBpediaRetriever extends LabelRetriever {
     public Set<String> getClasses(String searchTerm, int k) {
 
         //get the highest number of math
-        Set<Instance> resultDirectMatches = getDirectMatches(searchTerm, "label", "URI", 10000, predicateIndexDirectory);
-        Set<Instance> resultPartialMatches = getPartialMatches(searchTerm, "label", "URI", 10000, predicateIndexDirectory, analyzer);
-        //add partial ones to direct
-        resultDirectMatches.addAll(resultPartialMatches);
+        Set<Instance> resultDirectMatches = getDirectMatches(searchTerm, "label", "URI", k, classIndexDirectory);
+
+        if (resultDirectMatches.size() < k) {
+            Set<Instance> resultPartialMatch = getPartialMatches(searchTerm, "labelTokenized", "URI", k - resultDirectMatches.size(), classIndexDirectory, analyzer);
+
+            //add partial matches to direct
+            resultDirectMatches.addAll(resultPartialMatch);
+        }
 
         Set<String> predicates = new LinkedHashSet<>();
 
-        //filter out classes, predicates with namespace "http:dbpedia,org/property"
-        String nameSpace = "http://dbpedia.org/ontology/";
-        for (Instance i1 : resultDirectMatches) {
-            String firstLetter = "";
-            String uri = i1.getUri();
-
-            if (uri.contains(nameSpace)) {
-                if (uri.replace(nameSpace, "").length() > 1) {
-                    firstLetter = uri.replace(nameSpace, "").substring(0, 1);
-
-                    //this part means that if the firstLetter is in lowercase it stands for predicates
-                    //unlike classes which start with upperCase e.g. http://dbpedia.org/ontology/River
-                    if (firstLetter.equals(firstLetter.toUpperCase())) {
-                        if (!predicates.contains(uri)) {
-                            predicates.add(uri);
-                        }
-                    }
-                }
-            }
-        }
+        resultDirectMatches.forEach(e1 -> predicates.add(e1.getUri()));
 
         //predicates = sortBySimilarity(predicates, searchTerm, k);
         return predicates;
@@ -196,26 +194,19 @@ public class DBpediaRetriever extends LabelRetriever {
      */
     public Set<String> getResources(String searchTerm, int k) {
 
-        Set<Instance> resultDirectMatch = getDirectMatches(searchTerm, "label", "URI", 1000, instanceIndexDirectory);
-        Set<Instance> resultPartialMatch = getPartialMatches(searchTerm, "labelTokenized", "URI", 1000, instanceIndexDirectory, analyzer);
+        super.comparator = super.pageRankComparator;
 
-        //add partial matches to direct
-        resultDirectMatch.addAll(resultPartialMatch);
-        Set<String> resources = new LinkedHashSet<>();
+        Set<Instance> resultDirectMatch = getDirectMatches(searchTerm, "label", "URI", k, instanceIndexDirectory);
 
-        String nameSpace = "http://dbpedia.org/resource/";
-        for (Instance i1 : resultDirectMatch) {
+        if (resultDirectMatch.size() < k) {
+            Set<Instance> resultPartialMatch = getPartialMatches(searchTerm, "labelTokenized", "URI", k - resultDirectMatch.size(), instanceIndexDirectory, analyzer);
 
-            if (resources.size() < k) {
-                String uri = i1.getUri();
-
-                if (uri.contains(nameSpace)) {
-                    resources.add(uri);
-                }
-            } else {
-                break;
-            }
+            //add partial matches to direct
+            resultDirectMatch.addAll(resultPartialMatch);
         }
+
+        Set<String> resources = new LinkedHashSet<>();
+        resultDirectMatch.forEach(i1 -> resources.add(i1.getUri()));
 
         //resources = sortBySimilarity(resources, searchTerm, k);
         return resources;

@@ -33,9 +33,9 @@ public class DBpediaLoader2 implements Loader {
 
     //docDirectory => dbpedia *.nt files
     //luceneIndex => lucene creates indexes 
-   
     private Set<String> properties;
     private Set<String> redirects;
+    private HashMap<String, Double> pageRanks = new HashMap<String, Double>();
 
     @Override
     public void load(boolean deleteIndexFiles, String indexDirectory, String dbpediaFilesDirectory) {
@@ -65,10 +65,18 @@ public class DBpediaLoader2 implements Loader {
             //get redirects pages only, not actual resources
             //create redirect index before
             //processor = new DBpediaRedirectQueryProcessor(true);
-            long start= System.currentTimeMillis();
+            long start = System.currentTimeMillis();
             redirects = getRedirects("dbpediaFiles/redirects_en.nt.bz2");
             long end = System.currentTimeMillis() - start;
+            System.out.println("DONE " + (end)+ " ms.");
             
+            
+            start = System.currentTimeMillis();
+            System.out.println("Adding 'dbpediaFiles/pageranks.ttl' to memory for indexing");
+            pageRanks = getPageRanks(new File("dbpediaFiles/pageranks.ttl"));
+            end = System.currentTimeMillis() - start;
+            System.out.println("DONE " + (end)+ " ms.");
+
             for (int i = 0; i < listOfFiles.length; i++) {
                 if (listOfFiles[i].isFile() && !listOfFiles[i].isHidden()) {
                     String fileExtension = listOfFiles[i].getName().substring(listOfFiles[i].getName().lastIndexOf(".") + 1);
@@ -127,8 +135,6 @@ public class DBpediaLoader2 implements Loader {
 
             System.out.println(br.lines().count());
             br.lines().filter(line -> line.startsWith("<")).forEach(line -> {
-                
-                
 
                 Pattern entityPattern = Pattern.compile(
                         "<http://dbpedia.org/resource/(.*?)> (.*?) (.*?) .");
@@ -151,7 +157,6 @@ public class DBpediaLoader2 implements Loader {
                     //DON'T index redirect pages, disambiguation pages
                     if (properties.contains(p) && !s.contains("disambiguation") && !redirects.contains(s)) {
 
-                        
                         if (o.contains("\"@en")) {
                             //remove " and "@en from string
                             o = o.substring(1, o.length() - 4);
@@ -175,7 +180,11 @@ public class DBpediaLoader2 implements Loader {
                         //empty means this subject is not a redirect page
                         try {
 
-                            dbpediaIndexer.addInstance(o, s);
+                            double rank = 0;
+                            if (pageRanks.get(s) != null) {
+                                rank = pageRanks.get(s);
+                            }
+                            dbpediaIndexer.addInstance(o, s, rank);
                         } catch (Exception e) {
                             System.err.println("Problem with adding " + o + " " + s);
                         }
@@ -221,7 +230,12 @@ public class DBpediaLoader2 implements Loader {
 
                         //s is the redirect page, o is the original resource
                         try {
-                            dbpediaIndexer.addInstance(s, o);
+                            double rank = 0;
+                            if (pageRanks.get(o) != null) {
+                                rank = pageRanks.get(o);
+                            }
+
+                            dbpediaIndexer.addInstance(s, o, rank);
                         } catch (Exception e) {
                             System.err.println("Problem with adding " + o + " " + s);
                         }
@@ -300,7 +314,6 @@ public class DBpediaLoader2 implements Loader {
             CompressorInputStream input = new CompressorStreamFactory(true).createCompressorInputStream(bis);
             BufferedReader br = new BufferedReader(new InputStreamReader(input));
 
-            
             br.lines().filter(line -> line.startsWith("<")).forEach(line -> {
                 //System.out.println(line);
                 String[] a = line.split(" ");
@@ -353,4 +366,41 @@ public class DBpediaLoader2 implements Loader {
         return content;
     }
 
+    public HashMap<String, Double> getPageRanks(File file) {
+        //HashMap<String, Set<String>> content = new HashMap<>();
+
+        HashMap<String, Double> ranks = new HashMap<>();
+
+        try {
+            FileInputStream fstream = new FileInputStream(file);
+            DataInputStream in = new DataInputStream(fstream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+
+                if (!line.startsWith("#")) {
+                    //System.out.println(line);
+                    try {
+                        String[] content = line.split("\t");
+
+                        String uri = content[0];
+                        uri = uri.substring(1, uri.length() - 1);
+                        String value = content[3].replace("^^<http://www.w3.org/2001/XMLSchema#float>] .", "").replace("\"", "");
+                        double rank = Double.parseDouble(value);
+
+                        ranks.put(uri, rank);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+            in.close();
+        } catch (Exception e) {
+            System.err.println("Error reading the file: " + file.getPath() + "\n" + e.getMessage());
+        }
+
+        return ranks;
+    }
 }

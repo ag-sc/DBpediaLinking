@@ -9,6 +9,7 @@ import edu.stanford.nlp.util.ArraySet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,14 +22,13 @@ public class WordNetAnalyzer {
      * subdirectory
      */
     public WordNetAnalyzer(String wordnetpath) {
-        try{
+        try {
             System.setProperty("wordnet.database.dir", wordnetpath);
-        wordNetDatabase = WordNetDatabase.getFileInstance();
-        }
-        catch(Exception e){
+            wordNetDatabase = WordNetDatabase.getFileInstance();
+        } catch (Exception e) {
             System.err.println("Problem with path for WordNetAnalyzer initiation!!!\nWordNet files should be as follows => docs/WordNet-3.0/dict");
         }
-        
+
     }
 
     /**
@@ -42,7 +42,7 @@ public class WordNetAnalyzer {
         Set<String> synStringSet = new HashSet<String>();
         Synset[] synsets = wordNetDatabase.getSynsets(word);
         for (Synset synset : synsets) {
-            for(String s1 : synset.getWordForms()){
+            for (String s1 : synset.getWordForms()) {
                 synStringSet.add(s1);
             }
         }
@@ -77,11 +77,10 @@ public class WordNetAnalyzer {
      * @return list containing synonyms and derivational words, separated by
      * delimiter
      */
-    public Set<String> getDerivationalWords(String word, String delimiter) {
-        Set<String> derivStringSet = new ArraySet<>();
+    public Set<String> getDerivationalWords(String word) {
+        Set<String> derivStringSet = new LinkedHashSet<>();
         derivStringSet.add(word);
-        
-        
+
         Synset[] synsets = wordNetDatabase.getSynsets(word);
         for (Synset synset : synsets) {
             for (String s : synset.getWordForms()) {

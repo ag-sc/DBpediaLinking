@@ -47,6 +47,7 @@ public class AnchorRetriever extends LabelRetriever {
     }
     
     public Set<String> getResources(String searchTerm, int k){
+        super.comparator = super.frequencyComparator;
         
         Set<Instance> result = getDirectMatches(searchTerm, "label", "URI", k, indexDirectory);
         

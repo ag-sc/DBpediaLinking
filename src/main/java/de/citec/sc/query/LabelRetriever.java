@@ -3,6 +3,7 @@ package de.citec.sc.query;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -24,6 +26,36 @@ import org.apache.lucene.store.RAMDirectory;
 
 public abstract class LabelRetriever {
 
+    protected final Comparator<Instance> pageRankComparator = new Comparator<Instance>() {
+
+        @Override
+        public int compare(Instance s1, Instance s2) {
+
+            if (s1.getPageRank() > s2.getPageRank()) {
+                return -1;
+            } else if (s1.getPageRank() < s2.getPageRank()) {
+                return 1;
+            }
+            return 0;
+        }
+    };
+
+    protected final Comparator<Instance> frequencyComparator = new Comparator<Instance>() {
+
+        @Override
+        public int compare(Instance s1, Instance s2) {
+
+            if (s1.getFreq() > s2.getFreq()) {
+                return -1;
+            } else if (s1.getFreq() < s2.getFreq()) {
+                return 1;
+            }
+
+            return 0;
+        }
+    };
+
+    protected Comparator<Instance> comparator = frequencyComparator;
 
     /**
      * returns top k URIs that match the searchTerm directly (not partial match)
@@ -53,6 +85,8 @@ public abstract class LabelRetriever {
             TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
             searcher.search(q, collector);
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
+//            TopDocs topdocs = searcher.search(q, k);
+//            ScoreDoc[] hits = topdocs.scoreDocs;
 
             // 4. display results
             //System.out.println("Found " + hits.length + " hits.");
@@ -66,20 +100,21 @@ public abstract class LabelRetriever {
                 if (d.get("freq") != null) {
                     freq = Double.parseDouble(d.get("freq"));
                 } else {
-                    String pAsString = p
-                            .replace("http://dbpedia.org/resource/", "")
-                            .replace("http://dbpedia.org/ontology/", "")
-                            .replace("http://dbpedia.org/property/", "")
-                            .replace("_", " ");
+//                    String pAsString = p
+//                            .replace("http://dbpedia.org/resource/", "")
+//                            .replace("http://dbpedia.org/ontology/", "")
+//                            .replace("http://dbpedia.org/property/", "")
+//                            .replace("_", " ");
+//
+//                    //value between 0 and 1
+//                    double similarity = stringSimilarity(searchField, pAsString);
 
-                    //value between 0 and 1
-                    double similarity = stringSimilarity(searchField, pAsString);
-                    
-                    freq =  score * similarity;
+                    freq = score;// * similarity;
                 }
 
                 String onProperty = "";
                 String pos = "";
+                double rank = 0;
 
                 //this part only for MATOLL lexicon
                 if (d.get("POS") != null) {
@@ -88,12 +123,19 @@ public abstract class LabelRetriever {
                 if (d.get("onProperty") != null) {
                     onProperty = d.get("onProperty");
                 }
+                if (d.get("rank") != null) {
+                    rank = Double.parseDouble(d.get("rank"));
+                }
 
                 Instance i1 = new Instance(p, freq);
                 i1.setOnProperty(onProperty);
                 i1.setPos(pos);
+                i1.setPageRank(rank);
 
-                result.add(i1);
+                if (freq > 0) {
+                    result.add(i1);
+                }
+
             }
 
             reader.close();
@@ -103,7 +145,7 @@ public abstract class LabelRetriever {
         }
 
         List<Instance> sorted = new ArrayList<>(result);
-        Collections.sort(sorted);
+        Collections.sort(sorted, comparator);
 
         if (sorted.size() > k) {
             sorted = sorted.subList(0, k);
@@ -134,7 +176,6 @@ public abstract class LabelRetriever {
 
             searchTerm = searchTerm.toLowerCase();
             Query q = new QueryParser(searchField, analyzer).parse(searchTerm);
-            
 
             // 3. search
             int hitsPerPage = 1000;
@@ -143,6 +184,8 @@ public abstract class LabelRetriever {
             TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
             searcher.search(q, collector);
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
+//            TopDocs topdocs = searcher.search(q, k);
+//            ScoreDoc[] hits = topdocs.scoreDocs;
 
             // 4. display results
             //System.out.println("Found " + hits.length + " hits.");
@@ -156,20 +199,21 @@ public abstract class LabelRetriever {
                 if (d.get("freq") != null) {
                     freq = Double.parseDouble(d.get("freq"));
                 } else {
-                    String pAsString = p
-                            .replace("http://dbpedia.org/resource/", "")
-                            .replace("http://dbpedia.org/ontology/", "")
-                            .replace("http://dbpedia.org/property/", "")
-                            .replace("_", " ");
+//                    String pAsString = p
+//                            .replace("http://dbpedia.org/resource/", "")
+//                            .replace("http://dbpedia.org/ontology/", "")
+//                            .replace("http://dbpedia.org/property/", "")
+//                            .replace("_", " ");
+//
+//                    //value between 0 and 1
+//                    double similarity = stringSimilarity(searchField, pAsString);
 
-                    //value between 0 and 1
-                    double similarity = stringSimilarity(searchField, pAsString);
-                    
-                    freq = score * similarity;
+                    freq = score;// * similarity;
                 }
 
                 String onProperty = "";
                 String pos = "";
+                double rank = 0;
 
                 //this part only for MATOLL lexicon
                 if (d.get("POS") != null) {
@@ -178,22 +222,28 @@ public abstract class LabelRetriever {
                 if (d.get("onProperty") != null) {
                     onProperty = d.get("onProperty");
                 }
+                if (d.get("rank") != null) {
+                    rank = Double.parseDouble(d.get("rank"));
+                }
 
                 Instance i1 = new Instance(p, freq);
                 i1.setOnProperty(onProperty);
                 i1.setPos(pos);
+                i1.setPageRank(rank);
 
-                result.add(i1);
+                if (freq > 0) {
+                    result.add(i1);
+                }
             }
 
             reader.close();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         List<Instance> sorted = new ArrayList<>(result);
-        Collections.sort(sorted);
+        Collections.sort(sorted, comparator);
 
         if (sorted.size() > k) {
             sorted = sorted.subList(0, k);
@@ -205,7 +255,6 @@ public abstract class LabelRetriever {
         return result;
     }
 
-    
     private int levenshteinDistance(String s, String t) {
         // degenerate cases
         if (s == t) {
@@ -278,55 +327,53 @@ public abstract class LabelRetriever {
 
         return score;
     }
-    
+
     /**
-     * sorts the given Set<String> based on Edit distance
-     * prefers ontology predicates over property namespaces
-     * 
+     * sorts the given Set<String> based on Edit distance prefers ontology
+     * predicates over property namespaces
+     *
      */
-    protected Set<String> sortBySimilarity(Set<String> input, String label, int topK){
-        
+    protected Set<String> sortBySimilarity(Set<String> input, String label, int topK) {
+
         List<Instance> instances = new ArrayList<>();
-        
-        for(String s : input){
-            
+
+        for (String s : input) {
+
             //preprocess the string
             //remove namespaces
             String preprocessed = "";
             double preference = 1.0;
-            if(s.contains("http://dbpedia.org/property/")){
-                preprocessed = s.replace("http://dbpedia.org/property/","");
+            if (s.contains("http://dbpedia.org/property/")) {
+                preprocessed = s.replace("http://dbpedia.org/property/", "");
             }
-            
+
             //ontology namespaces are preferred 10.5 times more than property ones, for ranking.
-            if(s.contains("http://dbpedia.org/ontology/")){
-                preprocessed = s.replace("http://dbpedia.org/ontology/","");
+            if (s.contains("http://dbpedia.org/ontology/")) {
+                preprocessed = s.replace("http://dbpedia.org/ontology/", "");
                 preference = 10.5;
             }
-            
-            if(s.contains("http://dbpedia.org/resource/")){
-                preprocessed = s.replace("http://dbpedia.org/resource/","");
+
+            if (s.contains("http://dbpedia.org/resource/")) {
+                preprocessed = s.replace("http://dbpedia.org/resource/", "");
             }
-            
-            
+
             double similarity = stringSimilarity(preprocessed, label);
             //preference for ranking
-            int freq = (int) (similarity*preference*100);
-            
+            int freq = (int) (similarity * preference * 100);
+
             Instance i1 = new Instance(s, freq);
             instances.add(i1);
         }
-        
+
         Collections.sort(instances);
-        
+
         if (instances.size() > topK) {
             instances = instances.subList(0, topK);
         }
-        
-        
+
         Set<String> result = new LinkedHashSet<>();
         instances.forEach(i1 -> result.add(i1.getUri()));
-        
+
         return result;
     }
 }

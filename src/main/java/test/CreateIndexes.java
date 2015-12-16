@@ -30,12 +30,12 @@ public class CreateIndexes {
         
         DBpediaLoader dbpediaLoader = new DBpediaLoader();
         dbpediaLoader.load(true, "dbpediaIndex", "dbpediaFiles/");
-
-        MATOLLLoader matollLoader= new MATOLLLoader();
-        matollLoader.load(true, "matollIndex", "matollFiles/");
-        
-        AnchorTextLoader loadAnchors = new AnchorTextLoader();
-        loadAnchors.load(true, "anchorIndex", "anchorFiles/");
+//
+//        MATOLLLoader matollLoader= new MATOLLLoader();
+//        matollLoader.load(true, "matollIndex", "matollFiles/");
+//        
+//        AnchorTextLoader loadAnchors = new AnchorTextLoader();
+//        loadAnchors.load(true, "anchorIndex", "anchorFiles/");
 
         System.out.println("DONE.");
     }

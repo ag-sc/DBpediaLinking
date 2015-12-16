@@ -54,6 +54,7 @@ public class MATOLLRetriever extends LabelRetriever {
 
     public Set<String> getPredicates(String searchTerm, int k, String nameSpace) {
 
+        
         Set<Instance> result = getDirectMatches(searchTerm, "label", "URI", 10000, indexDirectory);
 
         List<Instance> filteredAndSorted = new ArrayList<>();
